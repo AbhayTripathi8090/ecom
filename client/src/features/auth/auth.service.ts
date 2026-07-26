@@ -1,6 +1,11 @@
 import { api } from "../../lib/api";
 import { AUTH_ENDPOINTS } from "./auth.endpoints";
-import type { LoginCredentials, RegisterCredentials, AuthResponse, User } from "./auth.types";
+import type {
+  LoginCredentials,
+  RegisterCredentials,
+  AuthResponse,
+  User,
+} from "./auth.types";
 
 export const authService = {
   login: async (credentials: LoginCredentials): Promise<AuthResponse> => {
@@ -21,8 +26,11 @@ export const authService = {
       formData.append("name", credentials.name);
       formData.append("email", credentials.email);
       formData.append("password", credentials.password);
+      formData.append("role", credentials.role || "user");
       formData.append("profileImage", credentials.profileImage);
       payload = formData;
+    } else {
+      payload = { ...credentials, role: credentials.role || "user" };
     }
 
     const res: any = await api.post(AUTH_ENDPOINTS.REGISTER, payload);

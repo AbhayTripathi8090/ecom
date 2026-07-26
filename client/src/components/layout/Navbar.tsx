@@ -1,14 +1,17 @@
 import React from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { ShoppingBag, LogOut, LogIn, UserPlus } from "lucide-react";
+import { ShoppingBag, LogOut, LogIn, UserPlus, Package, ShieldCheck } from "lucide-react";
 import { useAppSelector, useAppDispatch } from "../../hooks";
 import { selectAuth, logoutThunk, getUserAvatarUrl } from "../../features/auth";
+import { selectCartItemCount } from "../../features/cart";
 import { Button } from "../ui/Button";
 
 export const Navbar: React.FC = () => {
   const navigate = useNavigate();
   const dispatch = useAppDispatch();
   const { isAuthenticated, user } = useAppSelector(selectAuth);
+  const cartCount = useAppSelector(selectCartItemCount);
+  const isAdmin = user?.role === "admin";
 
   const avatarUrl = getUserAvatarUrl(user);
 
@@ -22,10 +25,10 @@ export const Navbar: React.FC = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
         {/* Brand Logo */}
         <Link to="/" className="flex items-center space-x-2.5">
-          <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-indigo-600 to-violet-500 flex items-center justify-center shadow-lg shadow-indigo-500/25">
+          <div className="w-9 h-9 rounded-xl bg-linear-to-tr from-indigo-600 to-violet-500 flex items-center justify-center shadow-lg shadow-indigo-500/25">
             <ShoppingBag className="w-5 h-5 text-white" />
           </div>
-          <span className="text-xl font-bold bg-gradient-to-r from-white via-slate-200 to-indigo-400 bg-clip-text text-transparent">
+          <span className="text-xl font-bold bg-linear-to-r from-white via-slate-200 to-indigo-400 bg-clip-text text-transparent">
             IdeaCraft
           </span>
         </Link>
@@ -41,10 +44,26 @@ export const Navbar: React.FC = () => {
           <Link to="/categories" className="text-slate-400 hover:text-white transition-colors">
             Categories
           </Link>
+          {isAuthenticated && (
+            <Link to="/orders" className="text-slate-400 hover:text-white transition-colors flex items-center gap-1.5">
+              <Package className="w-4 h-4" />
+              My Orders
+            </Link>
+          )}
         </nav>
 
         {/* User / Auth Action Controls */}
         <div className="flex items-center space-x-3">
+          {isAuthenticated && (
+            <Link to="/cart" className="relative inline-flex items-center rounded-xl border border-slate-800 bg-slate-900/70 px-3 py-2 text-slate-300 hover:text-white transition-colors">
+              <ShoppingBag className="w-4 h-4" />
+              {cartCount > 0 && (
+                <span className="ml-2 rounded-full bg-indigo-600 px-2 py-0.5 text-[10px] font-semibold text-white">
+                  {cartCount}
+                </span>
+              )}
+            </Link>
+          )}
           {isAuthenticated && user ? (
             <div className="flex items-center space-x-3">
               <Link
@@ -58,12 +77,21 @@ export const Navbar: React.FC = () => {
                     className="w-7 h-7 rounded-full object-cover ring-2 ring-indigo-500/50"
                   />
                 ) : (
-                  <div className="w-7 h-7 rounded-full bg-gradient-to-tr from-indigo-500 to-violet-600 flex items-center justify-center text-white text-xs font-bold">
+                  <div className="w-7 h-7 rounded-full bg-linear-to-tr from-indigo-500 to-violet-600 flex items-center justify-center text-white text-xs font-bold">
                     {user.name[0]?.toUpperCase()}
                   </div>
                 )}
                 <span className="font-medium">{user.name}</span>
               </Link>
+              {isAdmin && (
+                <Link
+                  to="/admin/dashboard"
+                  className="inline-flex items-center gap-1.5 rounded-xl border border-indigo-500/30 bg-indigo-500/10 px-3 py-1.5 text-sm text-indigo-300 transition-colors hover:bg-indigo-500/20"
+                >
+                  <ShieldCheck className="w-4 h-4" />
+                  Admin Dashboard
+                </Link>
+              )}
               <Button variant="ghost" size="sm" onClick={handleLogout} className="text-slate-400 hover:text-rose-400">
                 <LogOut className="w-4 h-4 mr-1.5" />
                 Logout
