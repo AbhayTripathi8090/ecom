@@ -10,6 +10,7 @@ export const connectDB = async (): Promise<void> => {
     console.log("MongoDB Connected");
   } catch (error) {
     console.error("Database Connection Failed");
+    console.error(error)
 
     process.exit(1);
   }
