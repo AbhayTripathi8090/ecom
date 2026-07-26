@@ -50,11 +50,15 @@ export const registerUser = async (
   }
 
   const profileImage = profileImageFile
-    ? await uploadImage(profileImageFile.buffer, `${env.CLOUDINARY_FOLDER}/users`)
+    ? await uploadImage(
+        profileImageFile.buffer,
+        `${env.CLOUDINARY_FOLDER}/users`,
+      )
     : undefined;
 
   const user = await User.create({
     ...input,
+    role: input.role ?? "user",
     profileImage,
   });
   const accessToken = createToken(user);
@@ -68,9 +72,10 @@ export const registerUser = async (
 export const loginUser = async (
   input: LoginInput,
 ): Promise<{ user: PublicUser; tokens: AuthTokens }> => {
-  const user = await User.findOne({ email: input.email, isActive: true }).select(
-    "+password +isActive",
-  );
+  const user = await User.findOne({
+    email: input.email,
+    isActive: true,
+  }).select("+password +isActive");
 
   if (!user || !(await user.comparePassword(input.password))) {
     throw new AppError("Invalid email or password", 401);

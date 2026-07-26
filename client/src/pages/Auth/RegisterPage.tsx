@@ -1,14 +1,50 @@
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { useForm } from "react-hook-form";
+import { useForm, type SubmitHandler } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
 import { toast } from "react-hot-toast";
 import { UserPlus, Camera, Upload } from "lucide-react";
 import { useAppDispatch, useAppSelector } from "../../hooks";
-import { registerThunk, registerSchema, selectAuthLoading } from "../../features/auth";
-import type { RegisterFormData } from "../../features/auth";
+import { registerThunk, selectAuthLoading } from "../../features/auth";
 import { Input } from "../../components/ui/Input";
 import { Button } from "../../components/ui/Button";
+
+type RegisterFormValues = {
+  name: string;
+  email: string;
+  password: string;
+  confirmPassword: string;
+  role: "user" | "admin";
+};
+
+const registerFormSchema = z
+  .object({
+    name: z
+      .string()
+      .min(2, "Name must be at least 2 characters"),
+
+    email: z
+      .string()
+      .min(1, "Email is required")
+      .email("Invalid email address"),
+
+    password: z
+      .string()
+      .min(6, "Password must be at least 6 characters"),
+
+    confirmPassword: z
+      .string()
+      .min(6, "Please confirm your password"),
+
+    role: z.enum(["user", "admin"]).default("user"),
+  })
+  .refine((data) => data.password === data.confirmPassword, {
+    message: "Passwords do not match",
+    path: ["confirmPassword"],
+  });
+
+// type RegisterFormValues = z.infer<typeof registerFormSchema>;
 
 export const RegisterPage: React.FC = () => {
   const navigate = useNavigate();
@@ -17,20 +53,22 @@ export const RegisterPage: React.FC = () => {
 
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [selectedRole, setSelectedRole] = useState<"user" | "admin">("user");
 
-  const {
-    register,
-    handleSubmit,
-    formState: { errors },
-  } = useForm<RegisterFormData>({
-    resolver: zodResolver(registerSchema),
-    defaultValues: {
-      name: "",
-      email: "",
-      password: "",
-      confirmPassword: "",
-    },
-  });
+ const {
+  register,
+  handleSubmit,
+  formState: { errors },
+} = useForm<RegisterFormValues>({
+  resolver: zodResolver(registerFormSchema),
+  defaultValues: {
+    name: "",
+    email: "",
+    password: "",
+    confirmPassword: "",
+    role: "user",
+  },
+});
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -44,26 +82,37 @@ export const RegisterPage: React.FC = () => {
     }
   };
 
-  const onSubmit = async (data: RegisterFormData) => {
-    try {
-      const resultAction = await dispatch(
-        registerThunk({
-          name: data.name,
-          email: data.email,
-          password: data.password,
-          profileImage: selectedFile,
-        })
+ const onSubmit: SubmitHandler<RegisterFormValues> = async (data) => {
+  try {
+    const resultAction = await dispatch(
+      registerThunk({
+        name: data.name,
+        email: data.email,
+        password: data.password,
+        role: selectedRole,
+        profileImage: selectedFile,
+      })
+    );
+
+    if (registerThunk.fulfilled.match(resultAction)) {
+      toast.success(
+        selectedRole === "admin"
+          ? "Admin account created successfully!"
+          : "Account created successfully!"
       );
-      if (registerThunk.fulfilled.match(resultAction)) {
-        toast.success("Account created successfully!");
-        navigate("/");
-      } else {
-        toast.error(resultAction.payload || "Registration failed");
-      }
-    } catch (err: any) {
-      toast.error("An unexpected error occurred");
+
+      navigate(selectedRole === "admin" ? "/admin/dashboard" : "/");
+    } else {
+      toast.error(
+        typeof resultAction.payload === "string"
+          ? resultAction.payload
+          : "Registration failed"
+      );
     }
-  };
+  } catch {
+    toast.error("An unexpected error occurred");
+  }
+};
 
   return (
     <div className="min-h-[75vh] flex items-center justify-center py-12 px-4">
@@ -135,6 +184,23 @@ export const RegisterPage: React.FC = () => {
             error={errors.confirmPassword?.message}
             {...register("confirmPassword")}
           />
+
+          <div className="space-y-2">
+            <label className="text-sm font-medium text-slate-300">Account Type</label>
+            <select
+              value={selectedRole}
+              onChange={(e) => setSelectedRole(e.target.value as "user" | "admin")}
+              className="w-full rounded-xl border border-slate-700 bg-slate-900/70 px-3 py-2.5 text-sm text-white outline-none focus:border-indigo-500"
+            >
+              <option value="user">Customer</option>
+              <option value="admin">Admin</option>
+            </select>
+            <p className="text-xs text-slate-400">
+              {selectedRole === "admin"
+                ? "Admin accounts can access the dashboard after sign-in."
+                : "Customer accounts can browse products and place orders."}
+            </p>
+          </div>
 
           <Button type="submit" className="w-full" isLoading={isLoading}>
             Register

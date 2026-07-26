@@ -8,7 +8,12 @@ import { ProductListPage, ProductDetailPage } from "../pages/Product";
 import { NotFoundPage } from "../pages/NotFound";
 import { ProtectedRoute } from "./ProtectedRoute";
 import { GuestRoute } from "./GuestRoute";
+import { AdminRoute } from "./AdminRoute";
 import { MainLayout } from "../components/layout/MainLayout";
+import { CartPage } from "../pages/Cart";
+import { CheckoutPage } from "../pages/Checkout";
+import { OrdersPage, OrderDetailPage } from "../pages/Orders";
+import { AdminDashboardPage } from "../pages/Dashboard";
 
 export const AppRoutes: React.FC = () => {
   return (
@@ -29,6 +34,14 @@ export const AppRoutes: React.FC = () => {
         {/* Protected Routes (require auth) */}
         <Route element={<ProtectedRoute />}>
           <Route path="/profile" element={<ProfilePage />} />
+          <Route path="/cart" element={<CartPage />} />
+          <Route path="/checkout" element={<CheckoutPage />} />
+          <Route path="/orders" element={<OrdersPage />} />
+          <Route path="/orders/:id" element={<OrderDetailPage />} />
+        </Route>
+
+        <Route element={<AdminRoute />}>
+          <Route path="/admin/dashboard" element={<AdminDashboardPage />} />
         </Route>
 
         {/* 404 Catch All */}

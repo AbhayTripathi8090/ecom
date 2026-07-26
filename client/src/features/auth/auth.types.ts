@@ -26,6 +26,7 @@ export interface RegisterCredentials {
   email: string;
   password: string;
   confirmPassword?: string;
+  role?: UserRole;
   profileImage?: File | null;
 }
 
