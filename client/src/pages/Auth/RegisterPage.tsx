@@ -1,9 +1,9 @@
-import React from "react";
+import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "react-hot-toast";
-import { UserPlus } from "lucide-react";
+import { UserPlus, Camera, Upload } from "lucide-react";
 import { useAppDispatch, useAppSelector } from "../../hooks";
 import { registerThunk, registerSchema, selectAuthLoading } from "../../features/auth";
 import type { RegisterFormData } from "../../features/auth";
@@ -14,6 +14,9 @@ export const RegisterPage: React.FC = () => {
   const navigate = useNavigate();
   const dispatch = useAppDispatch();
   const isLoading = useAppSelector(selectAuthLoading);
+
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
 
   const {
     register,
@@ -29,6 +32,18 @@ export const RegisterPage: React.FC = () => {
     },
   });
 
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      if (file.size > 5 * 1024 * 1024) {
+        toast.error("File size must be under 5MB");
+        return;
+      }
+      setSelectedFile(file);
+      setImagePreview(URL.createObjectURL(file));
+    }
+  };
+
   const onSubmit = async (data: RegisterFormData) => {
     try {
       const resultAction = await dispatch(
@@ -36,6 +51,7 @@ export const RegisterPage: React.FC = () => {
           name: data.name,
           email: data.email,
           password: data.password,
+          profileImage: selectedFile,
         })
       );
       if (registerThunk.fulfilled.match(resultAction)) {
@@ -51,18 +67,44 @@ export const RegisterPage: React.FC = () => {
 
   return (
     <div className="min-h-[75vh] flex items-center justify-center py-12 px-4">
-      <div className="w-full max-w-md space-y-8 glass-card p-8 rounded-2xl border border-slate-800 shadow-2xl">
+      <div className="w-full max-w-md space-y-6 glass-card p-8 rounded-2xl border border-slate-800 shadow-2xl">
         <div className="text-center space-y-2">
           <div className="inline-flex p-3 rounded-xl bg-indigo-500/10 text-indigo-400 mb-2">
             <UserPlus className="w-6 h-6" />
           </div>
           <h2 className="text-2xl font-bold text-white">Create Account</h2>
           <p className="text-sm text-slate-400">
-            Join AuraMarket today to get started
+            Join IdeaCraft today to get started
           </p>
         </div>
 
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+          {/* Profile Image Picker */}
+          <div className="flex flex-col items-center justify-center space-y-2 pb-2">
+            <label className="relative cursor-pointer group">
+              <div className="w-20 h-20 rounded-full border-2 border-dashed border-slate-700 group-hover:border-indigo-500 flex items-center justify-center bg-slate-900/60 overflow-hidden transition-all">
+                {imagePreview ? (
+                  <img src={imagePreview} alt="Preview" className="w-full h-full object-cover" />
+                ) : (
+                  <div className="flex flex-col items-center text-slate-400 group-hover:text-indigo-400">
+                    <Camera className="w-6 h-6 mb-1" />
+                    <span className="text-[10px]">Upload</span>
+                  </div>
+                )}
+              </div>
+              <div className="absolute bottom-0 right-0 p-1.5 rounded-full bg-indigo-600 text-white shadow-md">
+                <Upload className="w-3.5 h-3.5" />
+              </div>
+              <input
+                type="file"
+                accept="image/*"
+                className="hidden"
+                onChange={handleFileChange}
+              />
+            </label>
+            <span className="text-xs text-slate-400">Optional Profile Picture</span>
+          </div>
+
           <Input
             label="Full Name"
             placeholder="John Doe"

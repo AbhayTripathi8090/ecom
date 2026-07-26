@@ -11,8 +11,11 @@ export const loginThunk = createAsyncThunk<
 >("auth/login", async (credentials, { rejectWithValue }) => {
   try {
     const data = await authService.login(credentials);
-    if (data.token) {
-      storage.setToken(data.token);
+    const token = data.token || data.tokens?.accessToken;
+    if (token) {
+      storage.setToken(token);
+    }
+    if (data.user) {
       storage.setUser(data.user);
     }
     return data;
@@ -28,8 +31,11 @@ export const registerThunk = createAsyncThunk<
 >("auth/register", async (credentials, { rejectWithValue }) => {
   try {
     const data = await authService.register(credentials);
-    if (data.token) {
-      storage.setToken(data.token);
+    const token = data.token || data.tokens?.accessToken;
+    if (token) {
+      storage.setToken(token);
+    }
+    if (data.user) {
       storage.setUser(data.user);
     }
     return data;
@@ -46,7 +52,6 @@ export const logoutThunk = createAsyncThunk<
   try {
     await authService.logout();
   } catch (error) {
-    // Ignore backend logout error, still clear local storage
     console.warn("Logout error:", getErrorMessage(error));
   } finally {
     storage.clearAuth();
@@ -59,9 +64,25 @@ export const getCurrentUserThunk = createAsyncThunk<
   { rejectValue: string }
 >("auth/getCurrentUser", async (_, { rejectWithValue }) => {
   try {
-    return await authService.getCurrentUser();
+    const user = await authService.getCurrentUser();
+    storage.setUser(user);
+    return user;
   } catch (error) {
     storage.clearAuth();
+    return rejectWithValue(getErrorMessage(error));
+  }
+});
+
+export const uploadProfileImageThunk = createAsyncThunk<
+  User,
+  File,
+  { rejectValue: string }
+>("auth/uploadProfileImage", async (file, { rejectWithValue }) => {
+  try {
+    const user = await authService.uploadProfileImage(file);
+    storage.setUser(user);
+    return user;
+  } catch (error) {
     return rejectWithValue(getErrorMessage(error));
   }
 });

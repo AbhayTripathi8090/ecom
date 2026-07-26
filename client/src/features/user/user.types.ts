@@ -14,8 +14,9 @@ export interface UserProfile extends User {
 
 export interface UpdateProfileDto {
   name?: string;
+  email?: string;
   phone?: string;
-  avatar?: string;
+  profileImage?: File | null;
   address?: UserProfile["address"];
   bio?: string;
 }
