@@ -1,14 +1,16 @@
 import React from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { ShoppingBag, User as UserIcon, LogOut, LogIn, UserPlus } from "lucide-react";
+import { ShoppingBag, LogOut, LogIn, UserPlus } from "lucide-react";
 import { useAppSelector, useAppDispatch } from "../../hooks";
-import { selectAuth, logoutThunk } from "../../features/auth";
+import { selectAuth, logoutThunk, getUserAvatarUrl } from "../../features/auth";
 import { Button } from "../ui/Button";
 
 export const Navbar: React.FC = () => {
   const navigate = useNavigate();
   const dispatch = useAppDispatch();
   const { isAuthenticated, user } = useAppSelector(selectAuth);
+
+  const avatarUrl = getUserAvatarUrl(user);
 
   const handleLogout = async () => {
     await dispatch(logoutThunk());
@@ -24,7 +26,7 @@ export const Navbar: React.FC = () => {
             <ShoppingBag className="w-5 h-5 text-white" />
           </div>
           <span className="text-xl font-bold bg-gradient-to-r from-white via-slate-200 to-indigo-400 bg-clip-text text-transparent">
-            AuraMarket
+            IdeaCraft
           </span>
         </Link>
 
@@ -47,9 +49,19 @@ export const Navbar: React.FC = () => {
             <div className="flex items-center space-x-3">
               <Link
                 to="/profile"
-                className="flex items-center space-x-2 text-sm text-slate-300 hover:text-white bg-slate-900/80 hover:bg-slate-800 border border-slate-800 px-3 py-1.5 rounded-lg transition-all"
+                className="flex items-center space-x-2.5 text-sm text-slate-300 hover:text-white bg-slate-900/80 hover:bg-slate-800 border border-slate-800 px-3 py-1.5 rounded-xl transition-all"
               >
-                <UserIcon className="w-4 h-4 text-indigo-400" />
+                {avatarUrl ? (
+                  <img
+                    src={avatarUrl}
+                    alt={user.name}
+                    className="w-7 h-7 rounded-full object-cover ring-2 ring-indigo-500/50"
+                  />
+                ) : (
+                  <div className="w-7 h-7 rounded-full bg-gradient-to-tr from-indigo-500 to-violet-600 flex items-center justify-center text-white text-xs font-bold">
+                    {user.name[0]?.toUpperCase()}
+                  </div>
+                )}
                 <span className="font-medium">{user.name}</span>
               </Link>
               <Button variant="ghost" size="sm" onClick={handleLogout} className="text-slate-400 hover:text-rose-400">
