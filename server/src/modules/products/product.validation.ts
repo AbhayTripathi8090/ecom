@@ -47,7 +47,7 @@ const seoSchema = z.preprocess(
     .optional(),
 );
 
-const productBaseSchema = z
+const productObjectSchema = z
   .object({
     name: z.string().trim().min(2).max(160),
     slug: z.string().trim().min(2).max(180).optional(),
@@ -65,21 +65,26 @@ const productBaseSchema = z
     isActive: z.coerce.boolean().optional(),
     seo: seoSchema,
   })
-  .strict()
-  .refine(
-    (data) =>
-      data.discountPrice === undefined ||
-      data.price === undefined ||
-      data.discountPrice <= data.price,
-    {
-      message: "Discount price cannot be greater than price",
-      path: ["discountPrice"],
-    },
-  );
+  .strict();
 
-export const createProductSchema = productBaseSchema;
+const priceRefinement = (data: { discountPrice?: number; price?: number }) =>
+  data.discountPrice === undefined ||
+  data.price === undefined ||
+  data.discountPrice <= data.price;
 
-export const updateProductSchema = productBaseSchema.partial();
+const priceRefinementOptions = {
+  message: "Discount price cannot be greater than price",
+  path: ["discountPrice"],
+};
+
+export const createProductSchema = productObjectSchema.refine(
+  priceRefinement,
+  priceRefinementOptions,
+);
+
+export const updateProductSchema = productObjectSchema
+  .partial()
+  .refine(priceRefinement, priceRefinementOptions);
 
 export const productIdParamSchema = z.object({
   id: objectIdSchema,

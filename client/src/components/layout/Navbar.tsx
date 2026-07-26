@@ -1,0 +1,80 @@
+import React from "react";
+import { Link, useNavigate } from "react-router-dom";
+import { ShoppingBag, User as UserIcon, LogOut, LogIn, UserPlus } from "lucide-react";
+import { useAppSelector, useAppDispatch } from "../../hooks";
+import { selectAuth, logoutThunk } from "../../features/auth";
+import { Button } from "../ui/Button";
+
+export const Navbar: React.FC = () => {
+  const navigate = useNavigate();
+  const dispatch = useAppDispatch();
+  const { isAuthenticated, user } = useAppSelector(selectAuth);
+
+  const handleLogout = async () => {
+    await dispatch(logoutThunk());
+    navigate("/login");
+  };
+
+  return (
+    <header className="sticky top-0 z-40 w-full border-b border-slate-800 bg-slate-950/80 backdrop-blur-md">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+        {/* Brand Logo */}
+        <Link to="/" className="flex items-center space-x-2.5">
+          <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-indigo-600 to-violet-500 flex items-center justify-center shadow-lg shadow-indigo-500/25">
+            <ShoppingBag className="w-5 h-5 text-white" />
+          </div>
+          <span className="text-xl font-bold bg-gradient-to-r from-white via-slate-200 to-indigo-400 bg-clip-text text-transparent">
+            AuraMarket
+          </span>
+        </Link>
+
+        {/* Center Nav Items */}
+        <nav className="hidden md:flex items-center space-x-6 text-sm font-medium">
+          <Link to="/" className="text-slate-300 hover:text-white transition-colors">
+            Home
+          </Link>
+          <Link to="/products" className="text-slate-400 hover:text-white transition-colors">
+            Products
+          </Link>
+          <Link to="/categories" className="text-slate-400 hover:text-white transition-colors">
+            Categories
+          </Link>
+        </nav>
+
+        {/* User / Auth Action Controls */}
+        <div className="flex items-center space-x-3">
+          {isAuthenticated && user ? (
+            <div className="flex items-center space-x-3">
+              <Link
+                to="/profile"
+                className="flex items-center space-x-2 text-sm text-slate-300 hover:text-white bg-slate-900/80 hover:bg-slate-800 border border-slate-800 px-3 py-1.5 rounded-lg transition-all"
+              >
+                <UserIcon className="w-4 h-4 text-indigo-400" />
+                <span className="font-medium">{user.name}</span>
+              </Link>
+              <Button variant="ghost" size="sm" onClick={handleLogout} className="text-slate-400 hover:text-rose-400">
+                <LogOut className="w-4 h-4 mr-1.5" />
+                Logout
+              </Button>
+            </div>
+          ) : (
+            <div className="flex items-center space-x-2">
+              <Link to="/login">
+                <Button variant="ghost" size="sm">
+                  <LogIn className="w-4 h-4 mr-1.5" />
+                  Sign In
+                </Button>
+              </Link>
+              <Link to="/register">
+                <Button variant="primary" size="sm">
+                  <UserPlus className="w-4 h-4 mr-1.5" />
+                  Register
+                </Button>
+              </Link>
+            </div>
+          )}
+        </div>
+      </div>
+    </header>
+  );
+};
