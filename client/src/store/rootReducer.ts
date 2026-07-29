@@ -7,7 +7,6 @@ import cartReducer from "../features/cart/cart.slice";
 import orderReducer from "../features/order/order.slice";
 import paymentReducer from "../features/payment/payment.slice";
 import shippingReducer from "../features/shipping/shipping.slice";
-import dashboardReducer from "../features/dashboard/dashboard.slice";
 
 export const rootReducer = combineReducers({
   auth: authReducer,
@@ -18,7 +17,6 @@ export const rootReducer = combineReducers({
   order: orderReducer,
   payment: paymentReducer,
   shipping: shippingReducer,
-  dashboard: dashboardReducer,
 });
 
 export type RootState = ReturnType<typeof rootReducer>;

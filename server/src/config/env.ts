@@ -18,7 +18,7 @@ const envSchema = z.object({
 
   JWT_COOKIE_EXPIRES_IN_DAYS: z.coerce.number().int().positive().default(7),
 
-  CORS_ORIGIN: z.string().default("http://localhost:5173"),
+  CORS_ORIGIN: z.string().default("http://localhost:5173,http://localhost:5174"),
 
   CLOUDINARY_CLOUD_NAME: z.string(),
 
