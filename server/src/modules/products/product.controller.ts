@@ -7,7 +7,7 @@ import {
   getProducts,
   updateProduct,
 } from "./product.service";
-import { productQuerySchema } from "./product.validation";
+
 
 const getUploadedFiles = (files: Request["files"]): Express.Multer.File[] => {
   if (!files) {
@@ -31,7 +31,7 @@ export const create = asyncHandler(async (req: Request, res: Response) => {
 });
 
 export const findAll = asyncHandler(async (req: Request, res: Response) => {
-  const result = await getProducts(productQuerySchema.parse(req.query));
+  const result = await getProducts(req.query as any);
 
   res.status(200).json({
     success: true,

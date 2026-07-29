@@ -10,14 +10,6 @@ import { registerThunk, selectAuthLoading } from "../../features/auth";
 import { Input } from "../../components/ui/Input";
 import { Button } from "../../components/ui/Button";
 
-type RegisterFormValues = {
-  name: string;
-  email: string;
-  password: string;
-  confirmPassword: string;
-  role: "user" | "admin";
-};
-
 const registerFormSchema = z
   .object({
     name: z
@@ -37,14 +29,14 @@ const registerFormSchema = z
       .string()
       .min(6, "Please confirm your password"),
 
-    role: z.enum(["user", "admin"]).default("user"),
+    role: z.enum(["customer", "admin"]),
   })
   .refine((data) => data.password === data.confirmPassword, {
     message: "Passwords do not match",
     path: ["confirmPassword"],
   });
 
-// type RegisterFormValues = z.infer<typeof registerFormSchema>;
+type RegisterFormValues = z.infer<typeof registerFormSchema>;
 
 export const RegisterPage: React.FC = () => {
   const navigate = useNavigate();
@@ -53,7 +45,7 @@ export const RegisterPage: React.FC = () => {
 
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
-  const [selectedRole, setSelectedRole] = useState<"user" | "admin">("user");
+  const [selectedRole, setSelectedRole] = useState<"customer" | "admin">("customer");
 
  const {
   register,
@@ -66,7 +58,7 @@ export const RegisterPage: React.FC = () => {
     email: "",
     password: "",
     confirmPassword: "",
-    role: "user",
+    role: "customer",
   },
 });
 
@@ -189,10 +181,10 @@ export const RegisterPage: React.FC = () => {
             <label className="text-sm font-medium text-slate-300">Account Type</label>
             <select
               value={selectedRole}
-              onChange={(e) => setSelectedRole(e.target.value as "user" | "admin")}
+              onChange={(e) => setSelectedRole(e.target.value as "customer" | "admin")}
               className="w-full rounded-xl border border-slate-700 bg-slate-900/70 px-3 py-2.5 text-sm text-white outline-none focus:border-indigo-500"
             >
-              <option value="user">Customer</option>
+              <option value="customer">Customer</option>
               <option value="admin">Admin</option>
             </select>
             <p className="text-xs text-slate-400">

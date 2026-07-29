@@ -7,7 +7,7 @@ import {
   getCategoryById,
   updateCategory,
 } from "./category.service";
-import { categoryQuerySchema } from "./category.validation";
+
 
 export const create = asyncHandler(async (req: Request, res: Response) => {
   const category = await createCategory(req.body, req.file);
@@ -19,7 +19,7 @@ export const create = asyncHandler(async (req: Request, res: Response) => {
 });
 
 export const findAll = asyncHandler(async (req: Request, res: Response) => {
-  const result = await getCategories(categoryQuerySchema.parse(req.query));
+  const result = await getCategories(req.query as any);
 
   res.status(200).json({
     success: true,

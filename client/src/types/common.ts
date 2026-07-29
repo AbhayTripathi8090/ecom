@@ -1,4 +1,4 @@
-export type UserRole = "user" | "admin";
+export type UserRole = "customer" | "admin";
 
 export interface BaseEntity {
   id: string;

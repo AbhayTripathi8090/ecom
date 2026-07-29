@@ -41,7 +41,7 @@ export const getUsersForAdmin = async (
 
 export const updateUserRole = async (
   userId: string,
-  role: "user" | "admin",
+  role: "customer" | "admin",
 ) => {
   const user = await User.findByIdAndUpdate(
     userId,

@@ -15,6 +15,7 @@ export const notFoundHandler: RequestHandler = (req, _res, next) => {
 };
 
 export const errorHandler: ErrorRequestHandler = (error, _req, res, _next) => {
+  console.error("API Error:", error);
   let statusCode = 500;
   let message = "Internal server error";
   let errors: unknown;

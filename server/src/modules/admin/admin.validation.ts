@@ -8,7 +8,7 @@ export const adminUserParamSchema = z.object({
 
 export const adminUserQuerySchema = z.object({
   search: z.string().trim().optional(),
-  role: z.enum(["user", "admin"]).optional(),
+  role: z.enum(["customer", "admin"]).optional(),
   isActive: z.coerce.boolean().optional(),
   page: z.coerce.number().int().positive().default(1),
   limit: z.coerce.number().int().positive().max(100).default(10),
@@ -16,7 +16,7 @@ export const adminUserQuerySchema = z.object({
 });
 
 export const updateUserRoleSchema = z.object({
-  role: z.enum(["user", "admin"]),
+  role: z.enum(["customer", "admin"]),
 });
 
 export const updateUserStatusSchema = z.object({
