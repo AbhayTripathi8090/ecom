@@ -23,13 +23,16 @@ const registerFormSchema = z
 
     password: z
       .string()
-      .min(6, "Password must be at least 6 characters"),
+      .min(8, "Password must be at least 8 characters")
+      .regex(/[a-z]/, "Password must contain a lowercase letter")
+      .regex(/[A-Z]/, "Password must contain an uppercase letter")
+      .regex(/[0-9]/, "Password must contain a number"),
 
     confirmPassword: z
       .string()
-      .min(6, "Please confirm your password"),
+      .min(8, "Please confirm your password"),
 
-    role: z.enum(["customer", "admin"]),
+    role: z.enum(["user", "admin"]),
   })
   .refine((data) => data.password === data.confirmPassword, {
     message: "Passwords do not match",
@@ -45,7 +48,7 @@ export const RegisterPage: React.FC = () => {
 
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
-  const [selectedRole, setSelectedRole] = useState<"customer" | "admin">("customer");
+  const [selectedRole, setSelectedRole] = useState<"user" | "admin">("user");
 
  const {
   register,
@@ -58,7 +61,7 @@ export const RegisterPage: React.FC = () => {
     email: "",
     password: "",
     confirmPassword: "",
-    role: "customer",
+    role: "user",
   },
 });
 
@@ -181,10 +184,10 @@ export const RegisterPage: React.FC = () => {
             <label className="text-sm font-medium text-slate-300">Account Type</label>
             <select
               value={selectedRole}
-              onChange={(e) => setSelectedRole(e.target.value as "customer" | "admin")}
+              onChange={(e) => setSelectedRole(e.target.value as "user" | "admin")}
               className="w-full rounded-xl border border-slate-700 bg-slate-900/70 px-3 py-2.5 text-sm text-white outline-none focus:border-indigo-500"
             >
-              <option value="customer">Customer</option>
+              <option value="user">Customer</option>
               <option value="admin">Admin</option>
             </select>
             <p className="text-xs text-slate-400">

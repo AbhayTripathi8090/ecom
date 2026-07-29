@@ -30,7 +30,7 @@ export const CheckoutPage: React.FC = () => {
     country: "India",
   });
 
-  const [paymentMethod, setPaymentMethod] = useState<string>("Mock Payment");
+  const [paymentMethod, setPaymentMethod] = useState<"cod" | "card" | "upi" | "netbanking">("cod");
   const [isProcessingPayment, setIsProcessingPayment] = useState(false);
 
   useEffect(() => {
@@ -72,13 +72,11 @@ export const CheckoutPage: React.FC = () => {
       await new Promise((resolve) => setTimeout(resolve, 1500));
 
       const orderInput = {
-        items: cartItems.map((item) => ({
-          productId: item.product.id,
-          quantity: item.quantity,
-          customization: item.customization,
-        })),
         shippingAddress: address,
         paymentMethod,
+        tax: summary.tax,
+        shippingFee: summary.shipping,
+        discount: summary.discount,
       };
 
       const resultAction = await dispatch(createOrderThunk(orderInput));
@@ -205,23 +203,23 @@ export const CheckoutPage: React.FC = () => {
 
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
               {[
-                { name: "Razorpay", desc: "Cards, NetBanking, UPI" },
-                { name: "Stripe", desc: "International Cards" },
-                { name: "Mock Payment", desc: "Instant Sandbox Payment" },
+                { label: "Cash on Delivery", value: "cod", desc: "Pay when order arrives" },
+                { label: "Card", value: "card", desc: "Manual card payment record" },
+                { label: "UPI", value: "upi", desc: "Manual UPI payment record" },
               ].map((pm) => (
                 <button
-                  key={pm.name}
+                  key={pm.value}
                   type="button"
-                  onClick={() => setPaymentMethod(pm.name)}
+                  onClick={() => setPaymentMethod(pm.value as typeof paymentMethod)}
                   className={`p-4 rounded-xl border text-left transition-all cursor-pointer flex flex-col justify-between ${
-                    paymentMethod === pm.name
+                    paymentMethod === pm.value
                       ? "border-indigo-500 bg-indigo-500/10 text-white ring-2 ring-indigo-500/30"
                       : "border-slate-800 bg-slate-900/60 text-slate-400 hover:text-slate-200 hover:border-slate-700"
                   }`}
                 >
                   <div className="flex justify-between items-center w-full mb-1">
-                    <span className="font-semibold text-sm">{pm.name}</span>
-                    {paymentMethod === pm.name && <CheckCircle2 className="w-4 h-4 text-indigo-400" />}
+                    <span className="font-semibold text-sm">{pm.label}</span>
+                    {paymentMethod === pm.value && <CheckCircle2 className="w-4 h-4 text-indigo-400" />}
                   </div>
                   <span className="text-[11px] text-slate-500">{pm.desc}</span>
                 </button>

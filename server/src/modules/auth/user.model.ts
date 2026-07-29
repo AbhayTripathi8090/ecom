@@ -2,7 +2,7 @@ import bcrypt from "bcrypt";
 import { Schema, model, type Model } from "mongoose";
 import type { UserDocument, UserRole } from "./auth.types";
 
-const userRoles: UserRole[] = ["customer", "admin"];
+const userRoles: UserRole[] = ["user", "admin"];
 
 const userSchema = new Schema<UserDocument>(
   {
@@ -31,7 +31,7 @@ const userSchema = new Schema<UserDocument>(
     role: {
       type: String,
       enum: userRoles,
-      default: "customer",
+      default: "user",
     },
     profileImage: {
       url: {

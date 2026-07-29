@@ -13,10 +13,12 @@ export const getAdminDashboard = async () => {
     totalOrders,
     paidOrders,
     pendingOrders,
+    processingOrders,
+    deliveredOrders,
     revenueResult,
     recentOrders,
     topProducts,
-    lowStockProducts,
+    lowStockCount,
   ] = await Promise.all([
     User.countDocuments(),
     User.countDocuments({ isActive: true }),
@@ -26,6 +28,8 @@ export const getAdminDashboard = async () => {
     Order.countDocuments(),
     Order.countDocuments({ paymentStatus: "paid" }),
     Order.countDocuments({ orderStatus: "pending" }),
+    Order.countDocuments({ orderStatus: "processing" }),
+    Order.countDocuments({ orderStatus: "delivered" }),
     Order.aggregate([
       { $match: { paymentStatus: "paid" } },
       { $group: { _id: null, revenue: { $sum: "$totalAmount" } } },
@@ -48,13 +52,19 @@ export const getAdminDashboard = async () => {
       { $sort: { quantitySold: -1 } },
       { $limit: 5 },
     ]),
-    Product.find({ stock: { $lte: 5 }, isActive: true })
-      .sort("stock")
-      .limit(5)
-      .select("name stock sku"),
+    Product.countDocuments({ stock: { $lte: 5 } }),
   ]);
 
+  const totalRevenue = revenueResult[0]?.revenue ?? 0;
+
   return {
+    totalProducts,
+    totalOrders,
+    totalRevenue,
+    pendingOrders,
+    printingOrders: processingOrders,
+    deliveredOrders,
+    lowStockProducts: lowStockCount,
     totals: {
       users: totalUsers,
       activeUsers,
@@ -64,10 +74,9 @@ export const getAdminDashboard = async () => {
       orders: totalOrders,
       paidOrders,
       pendingOrders,
-      revenue: revenueResult[0]?.revenue ?? 0,
+      revenue: totalRevenue,
     },
     recentOrders,
     topProducts,
-    lowStockProducts,
   };
 };

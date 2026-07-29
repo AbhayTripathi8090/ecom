@@ -2,29 +2,19 @@ import type { Product } from "../product/product.types";
 import type { CartCustomization } from "../cart/cart.types";
 
 export type OrderWorkflowStatus =
-  | "Order Placed"
-  | "Payment Verified"
-  | "Design Approved"
-  | "Printing In Progress"
-  | "Quality Check"
-  | "Packed"
-  | "Shipment Created"
-  | "Shipped"
-  | "Out for Delivery"
-  | "Delivered"
-  | "Cancelled";
+  | "pending"
+  | "confirmed"
+  | "processing"
+  | "shipped"
+  | "delivered"
+  | "cancelled";
 
 export const ORDER_WORKFLOW_STEPS: OrderWorkflowStatus[] = [
-  "Order Placed",
-  "Payment Verified",
-  "Design Approved",
-  "Printing In Progress",
-  "Quality Check",
-  "Packed",
-  "Shipment Created",
-  "Shipped",
-  "Out for Delivery",
-  "Delivered",
+  "pending",
+  "confirmed",
+  "processing",
+  "shipped",
+  "delivered",
 ];
 
 export interface OrderItem {
@@ -59,12 +49,13 @@ export interface Order {
   user: any;
   items: OrderItem[];
   shippingAddress: ShippingAddressInput;
-  paymentMethod: "Razorpay" | "Stripe" | "Credit Card" | "UPI" | "Mock Payment";
-  paymentStatus: "Pending" | "Successful" | "Failed" | "Refunded";
+  paymentMethod: "cod" | "card" | "upi" | "netbanking";
+  paymentStatus: "pending" | "paid" | "failed" | "refunded";
   orderStatus: OrderWorkflowStatus;
   subtotal: number;
   tax: number;
-  shippingCharge: number;
+  shippingCharge?: number;
+  shippingFee?: number;
   totalAmount: number;
   trackingNumber?: string;
   courierName?: string;
@@ -74,13 +65,11 @@ export interface Order {
 }
 
 export interface CreateOrderInput {
-  items: Array<{
-    productId: string;
-    quantity: number;
-    customization?: CartCustomization;
-  }>;
   shippingAddress: ShippingAddressInput;
-  paymentMethod: string;
+  paymentMethod: "cod" | "card" | "upi" | "netbanking";
+  shippingFee?: number;
+  tax?: number;
+  discount?: number;
 }
 
 export interface OrderState {

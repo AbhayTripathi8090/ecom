@@ -77,25 +77,25 @@ export const AdminDashboardPage: React.FC = () => {
   const statCards = [
     {
       title: "Total Revenue",
-      value: formatCurrency(metrics?.totalRevenue || 12450),
+      value: formatCurrency(metrics?.totalRevenue ?? 0),
       icon: DollarSign,
       color: "text-emerald-400 bg-emerald-500/10 border-emerald-500/20",
     },
     {
       title: "Total Orders",
-      value: metrics?.totalOrders || orders.length || 24,
+      value: metrics?.totalOrders ?? orders.length,
       icon: ShoppingBag,
       color: "text-indigo-400 bg-indigo-500/10 border-indigo-500/20",
     },
     {
       title: "Printing In Progress",
-      value: metrics?.printingOrders || 5,
+      value: metrics?.printingOrders ?? 0,
       icon: Printer,
       color: "text-violet-400 bg-violet-500/10 border-violet-500/20",
     },
     {
       title: "Low Stock Alert",
-      value: metrics?.lowStockProducts || 3,
+      value: metrics?.lowStockProducts ?? 0,
       icon: AlertTriangle,
       color: "text-amber-400 bg-amber-500/10 border-amber-500/20",
     },
@@ -226,15 +226,15 @@ export const AdminDashboardPage: React.FC = () => {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 text-slate-300 text-sm">
             <div className="p-4 rounded-xl bg-slate-900 border border-slate-800 space-y-1">
               <span className="text-slate-400 text-xs">Total Merchandise Catalog</span>
-              <div className="text-xl font-bold text-white">{metrics?.totalProducts || 12} Products</div>
+              <div className="text-xl font-bold text-white">{metrics?.totalProducts ?? 0} Products</div>
             </div>
             <div className="p-4 rounded-xl bg-slate-900 border border-slate-800 space-y-1">
               <span className="text-slate-400 text-xs">Pending Fulfillment</span>
-              <div className="text-xl font-bold text-amber-400">{metrics?.pendingOrders || 4} Orders</div>
+              <div className="text-xl font-bold text-amber-400">{metrics?.pendingOrders ?? 0} Orders</div>
             </div>
             <div className="p-4 rounded-xl bg-slate-900 border border-slate-800 space-y-1">
               <span className="text-slate-400 text-xs">Delivered Orders</span>
-              <div className="text-xl font-bold text-emerald-400">{metrics?.deliveredOrders || 18} Orders</div>
+              <div className="text-xl font-bold text-emerald-400">{metrics?.deliveredOrders ?? 0} Orders</div>
             </div>
           </div>
         </div>

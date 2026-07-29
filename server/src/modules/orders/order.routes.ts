@@ -13,8 +13,8 @@ const router = Router();
 
 router.use(authenticate);
 
-router.post("/", authorize("customer", "admin"), validate(createOrderSchema), create);
-router.get("/my", authorize("customer", "admin"), validate(orderQuerySchema, "query"), findMine);
+router.post("/", authorize("user", "admin"), validate(createOrderSchema), create);
+router.get("/my", authorize("user", "admin"), validate(orderQuerySchema, "query"), findMine);
 router.get("/", authorize("admin"), validate(orderQuerySchema, "query"), findAll);
 router.get("/:id", validate(orderIdParamSchema, "params"), findById);
 router.patch(
@@ -26,7 +26,7 @@ router.patch(
 );
 router.patch(
   "/:id/cancel",
-  authorize("customer", "admin"),
+  authorize("user", "admin"),
   validate(orderIdParamSchema, "params"),
   cancelMine,
 );
