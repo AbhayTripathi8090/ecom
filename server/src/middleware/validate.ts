@@ -7,7 +7,13 @@ export const validate =
   (schema: ZodSchema, target: ValidationTarget = "body") =>
   (req: Request, _res: Response, next: NextFunction): void => {
     try {
-      req[target] = schema.parse(req[target]);
+      const parsed = schema.parse(req[target]);
+      Object.defineProperty(req, target, {
+        value: parsed,
+        writable: true,
+        enumerable: true,
+        configurable: true,
+      });
       next();
     } catch (error) {
       next(error);

@@ -53,8 +53,8 @@ export const OrdersPage: React.FC = () => {
       ) : (
         <div className="space-y-4">
           {orders.map((order) => {
-            const isCancelled = order.orderStatus === "Cancelled";
-            const isDelivered = order.orderStatus === "Delivered";
+            const isCancelled = order.orderStatus === "cancelled";
+            const isDelivered = order.orderStatus === "delivered";
 
             return (
               <div

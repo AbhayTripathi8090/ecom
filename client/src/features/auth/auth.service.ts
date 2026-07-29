@@ -1,4 +1,5 @@
 import { api } from "../../lib/api";
+import { normalizeMongo } from "../../lib/normalize";
 import { AUTH_ENDPOINTS } from "./auth.endpoints";
 import type {
   LoginCredentials,
@@ -12,7 +13,7 @@ export const authService = {
     const res: any = await api.post(AUTH_ENDPOINTS.LOGIN, credentials);
     const data = res.data || res;
     return {
-      user: data.user,
+      user: normalizeMongo<User>(data.user),
       token: data.tokens?.accessToken || data.token,
       tokens: data.tokens,
     };
@@ -36,7 +37,7 @@ export const authService = {
     const res: any = await api.post(AUTH_ENDPOINTS.REGISTER, payload);
     const data = res.data || res;
     return {
-      user: data.user,
+      user: normalizeMongo<User>(data.user),
       token: data.tokens?.accessToken || data.token,
       tokens: data.tokens,
     };
@@ -49,7 +50,7 @@ export const authService = {
   getCurrentUser: async (): Promise<User> => {
     const res: any = await api.get(AUTH_ENDPOINTS.ME);
     const data = res.data || res;
-    return data.user || data;
+    return normalizeMongo<User>(data.user || data);
   },
 
   uploadProfileImage: async (file: File): Promise<User> => {
@@ -57,6 +58,6 @@ export const authService = {
     formData.append("profileImage", file);
     const res: any = await api.patch("/auth/profile-image", formData);
     const data = res.data || res;
-    return data.user || data;
+    return normalizeMongo<User>(data.user || data);
   },
 };

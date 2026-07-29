@@ -70,13 +70,11 @@ export const OrderDetailPage: React.FC = () => {
     );
   }
 
-  const isCancelled = order.orderStatus === "Cancelled";
+  const isCancelled = order.orderStatus === "cancelled";
   const currentStepIdx = ORDER_WORKFLOW_STEPS.indexOf(order.orderStatus as any);
   const canCancel =
     !isCancelled &&
-    (order.orderStatus === "Order Placed" ||
-      order.orderStatus === "Payment Verified" ||
-      order.orderStatus === "Design Approved");
+    (order.orderStatus === "pending" || order.orderStatus === "confirmed");
 
   return (
     <div className="space-y-8 py-4">

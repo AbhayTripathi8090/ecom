@@ -10,7 +10,7 @@ import {
 
 const router = Router();
 
-router.use(authenticate, authorize("customer", "admin"));
+router.use(authenticate, authorize("user", "admin"));
 
 router.get("/", findMyCart);
 router.post("/items", validate(addCartItemSchema), addItem);

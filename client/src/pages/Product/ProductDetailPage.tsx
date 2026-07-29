@@ -19,6 +19,7 @@ import {
   selectSelectedProduct,
   selectProductLoading,
 } from "../../features/product";
+import { addToCartThunk } from "../../features/cart";
 import type { MerchandiseSize, PrintType, PrintLocation } from "../../features/product";
 import { LoadingSpinner } from "../../components/common/LoadingSpinner";
 import { Button } from "../../components/ui/Button";
@@ -78,11 +79,28 @@ export const ProductDetailPage: React.FC = () => {
     }
   };
 
-  const handleAddToCart = () => {
+  const handleAddToCart = async () => {
     if (!product) return;
-    toast.success(
-      `Added ${quantity} custom ${product.name} (${selectedSize}, ${selectedColor}) to cart!`
+
+    const resultAction = await dispatch(
+      addToCartThunk({
+        productId: product.id,
+        quantity,
+        customization: {
+          size: selectedSize,
+          color: selectedColor,
+          printType: selectedPrintType,
+          printLocation: selectedPrintLocation,
+        },
+      }),
     );
+
+    if (addToCartThunk.fulfilled.match(resultAction)) {
+      toast.success(`Added ${quantity} ${product.name} to cart`);
+      return;
+    }
+
+    toast.error(resultAction.payload || "Please login to add items to cart");
   };
 
   if (isLoading && !product) {
@@ -326,7 +344,7 @@ export const ProductDetailPage: React.FC = () => {
                 </button>
                 <span className="w-12 text-center text-lg font-bold text-white">{quantity}</span>
                 <button
-                  onClick={() => setQuantity(quantity + 1)}
+                  onClick={() => setQuantity(Math.min(product.stock || 1, quantity + 1))}
                   className="w-10 h-10 rounded-xl bg-slate-900 border border-slate-800 text-slate-300 font-bold hover:bg-slate-800"
                 >
                   +
@@ -349,6 +367,7 @@ export const ProductDetailPage: React.FC = () => {
               className="w-full"
               size="lg"
               variant="primary"
+              disabled={!product.isActive || product.stock < 1}
             >
               <Sparkles className="w-4 h-4 mr-2" />
               Add Custom Merchandise To Cart
