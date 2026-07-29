@@ -1,6 +1,6 @@
 import React from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { ShoppingBag, LogOut, LogIn, UserPlus, Package, ShieldCheck } from "lucide-react";
+import { ShoppingBag, LogOut, LogIn, UserPlus, Package, Heart } from "lucide-react";
 import { useAppSelector, useAppDispatch } from "../../hooks";
 import { selectAuth, logoutThunk, getUserAvatarUrl } from "../../features/auth";
 import { selectCartItemCount } from "../../features/cart";
@@ -11,7 +11,6 @@ export const Navbar: React.FC = () => {
   const dispatch = useAppDispatch();
   const { isAuthenticated, user } = useAppSelector(selectAuth);
   const cartCount = useAppSelector(selectCartItemCount);
-  const isAdmin = user?.role === "admin";
 
   const avatarUrl = getUserAvatarUrl(user);
 
@@ -45,10 +44,16 @@ export const Navbar: React.FC = () => {
             Categories
           </Link>
           {isAuthenticated && (
-            <Link to="/orders" className="text-slate-400 hover:text-white transition-colors flex items-center gap-1.5">
-              <Package className="w-4 h-4" />
-              My Orders
-            </Link>
+            <>
+              <Link to="/orders" className="text-slate-400 hover:text-white transition-colors flex items-center gap-1.5">
+                <Package className="w-4 h-4" />
+                My Orders
+              </Link>
+              <Link to="/wishlist" className="text-slate-400 hover:text-white transition-colors flex items-center gap-1.5">
+                <Heart className="w-4 h-4 text-rose-400" />
+                Wishlist
+              </Link>
+            </>
           )}
         </nav>
 
@@ -56,7 +61,7 @@ export const Navbar: React.FC = () => {
         <div className="flex items-center space-x-3">
           {isAuthenticated && (
             <Link to="/cart" className="relative inline-flex items-center rounded-xl border border-slate-800 bg-slate-900/70 px-3 py-2 text-slate-300 hover:text-white transition-colors">
-              <ShoppingBag className="w-4 h-4" />
+              <ShoppingBag className="w-4 h-4 text-indigo-400" />
               {cartCount > 0 && (
                 <span className="ml-2 rounded-full bg-indigo-600 px-2 py-0.5 text-[10px] font-semibold text-white">
                   {cartCount}
@@ -83,15 +88,6 @@ export const Navbar: React.FC = () => {
                 )}
                 <span className="font-medium">{user.name}</span>
               </Link>
-              {isAdmin && (
-                <Link
-                  to="/admin/dashboard"
-                  className="inline-flex items-center gap-1.5 rounded-xl border border-indigo-500/30 bg-indigo-500/10 px-3 py-1.5 text-sm text-indigo-300 transition-colors hover:bg-indigo-500/20"
-                >
-                  <ShieldCheck className="w-4 h-4" />
-                  Admin Dashboard
-                </Link>
-              )}
               <Button variant="ghost" size="sm" onClick={handleLogout} className="text-slate-400 hover:text-rose-400">
                 <LogOut className="w-4 h-4 mr-1.5" />
                 Logout

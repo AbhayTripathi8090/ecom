@@ -3,15 +3,12 @@ import { Navigate, Outlet } from "react-router-dom";
 import { useAppSelector } from "../hooks";
 import { selectIsAuthenticated, selectUserRole } from "../features/auth";
 
-export const GuestRoute: React.FC = () => {
+export const CustomerRoute: React.FC = () => {
   const isAuthenticated = useAppSelector(selectIsAuthenticated);
   const role = useAppSelector(selectUserRole);
 
-  if (isAuthenticated) {
-    if (role === "admin") {
-      return <Navigate to="/admin/dashboard" replace />;
-    }
-    return <Navigate to="/" replace />;
+  if (isAuthenticated && role === "admin") {
+    return <Navigate to="/admin/dashboard" replace />;
   }
 
   return <Outlet />;

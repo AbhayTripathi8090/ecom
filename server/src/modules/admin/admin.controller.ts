@@ -5,10 +5,10 @@ import {
   updateUserRole,
   updateUserStatus,
 } from "./admin.service";
-import { adminUserQuerySchema } from "./admin.validation";
+
 
 export const findUsers = asyncHandler(async (req: Request, res: Response) => {
-  const result = await getUsersForAdmin(adminUserQuerySchema.parse(req.query));
+  const result = await getUsersForAdmin(req.query as any);
 
   res.status(200).json({ success: true, data: result });
 });

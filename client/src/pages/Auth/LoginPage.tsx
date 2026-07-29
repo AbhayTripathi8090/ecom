@@ -32,7 +32,12 @@ export const LoginPage: React.FC = () => {
       const resultAction = await dispatch(loginThunk(data));
       if (loginThunk.fulfilled.match(resultAction)) {
         toast.success("Welcome back!");
-        navigate("/");
+        const role = resultAction.payload.user?.role;
+        if (role === "admin") {
+          navigate("/admin/dashboard");
+        } else {
+          navigate("/");
+        }
       } else {
         toast.error(resultAction.payload || "Login failed");
       }

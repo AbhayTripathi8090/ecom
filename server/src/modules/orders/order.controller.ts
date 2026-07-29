@@ -8,7 +8,7 @@ import {
   getOrders,
   updateOrderStatus,
 } from "./order.service";
-import { orderQuerySchema } from "./order.validation";
+
 
 export const create = asyncHandler(async (req: Request, res: Response) => {
   const order = await createOrderFromCart(req.user!.id, req.body);
@@ -17,13 +17,13 @@ export const create = asyncHandler(async (req: Request, res: Response) => {
 });
 
 export const findMine = asyncHandler(async (req: Request, res: Response) => {
-  const result = await getMyOrders(req.user!.id, orderQuerySchema.parse(req.query));
+  const result = await getMyOrders(req.user!.id, req.query as any);
 
   res.status(200).json({ success: true, data: result });
 });
 
 export const findAll = asyncHandler(async (req: Request, res: Response) => {
-  const result = await getOrders(orderQuerySchema.parse(req.query));
+  const result = await getOrders(req.query as any);
 
   res.status(200).json({ success: true, data: result });
 });

@@ -12,13 +12,14 @@ import {
 
 const router = Router();
 
-router.use(authenticate);
-
+// Public routes for fetching categories
 router.get("/", validate(categoryQuerySchema, "query"), findAll);
 router.get("/:id", validate(categoryIdParamSchema, "params"), findById);
 
+// Protected Admin routes
 router.post(
   "/",
+  authenticate,
   authorize("admin"),
   upload.single("image"),
   validate(createCategorySchema),
@@ -26,6 +27,7 @@ router.post(
 );
 router.patch(
   "/:id",
+  authenticate,
   authorize("admin"),
   validate(categoryIdParamSchema, "params"),
   upload.single("image"),
@@ -34,6 +36,7 @@ router.patch(
 );
 router.delete(
   "/:id",
+  authenticate,
   authorize("admin"),
   validate(categoryIdParamSchema, "params"),
   remove,

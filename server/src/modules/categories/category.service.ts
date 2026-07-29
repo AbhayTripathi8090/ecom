@@ -79,7 +79,7 @@ export const getCategories = async (
   const filter: Record<string, unknown> = {};
 
   if (query.search) {
-    filter.$text = { $search: query.search };
+    filter.name = new RegExp(query.search, "i");
   }
 
   if (query.parentCategory) {

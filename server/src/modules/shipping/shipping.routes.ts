@@ -14,18 +14,18 @@ const router = Router();
 
 router.use(authenticate);
 
-router.get("/addresses", authorize("user", "admin"), findMine);
-router.post("/addresses", authorize("user", "admin"), validate(addressSchema), create);
+router.get("/addresses", authorize("customer", "admin"), findMine);
+router.post("/addresses", authorize("customer", "admin"), validate(addressSchema), create);
 router.patch(
   "/addresses/:id",
-  authorize("user", "admin"),
+  authorize("customer", "admin"),
   validate(addressIdParamSchema, "params"),
   validate(updateAddressSchema),
   update,
 );
 router.delete(
   "/addresses/:id",
-  authorize("user", "admin"),
+  authorize("customer", "admin"),
   validate(addressIdParamSchema, "params"),
   remove,
 );

@@ -12,13 +12,14 @@ import {
 
 const router = Router();
 
-router.use(authenticate);
-
+// Public routes for fetching products
 router.get("/", validate(productQuerySchema, "query"), findAll);
 router.get("/:id", validate(productIdParamSchema, "params"), findById);
 
+// Protected Admin routes
 router.post(
   "/",
+  authenticate,
   authorize("admin"),
   upload.array("images", 8),
   validate(createProductSchema),
@@ -26,6 +27,7 @@ router.post(
 );
 router.patch(
   "/:id",
+  authenticate,
   authorize("admin"),
   validate(productIdParamSchema, "params"),
   upload.array("images", 8),
@@ -34,6 +36,7 @@ router.patch(
 );
 router.delete(
   "/:id",
+  authenticate,
   authorize("admin"),
   validate(productIdParamSchema, "params"),
   remove,
