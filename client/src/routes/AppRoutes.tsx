@@ -11,24 +11,11 @@ import { CheckoutPage } from "../pages/Checkout";
 import { OrdersPage, OrderDetailPage } from "../pages/Orders";
 import { WishlistPage } from "../pages/Wishlist";
 
-import {
-  AdminDashboardPage,
-  AdminProductsPage,
-  AdminCategoriesPage,
-  AdminOrdersPage,
-  AdminCustomersPage,
-  AdminPaymentsPage,
-  AdminShippingPage,
-  AdminAnalyticsPage,
-} from "../pages/Admin";
-
 import { ProtectedRoute } from "./ProtectedRoute";
 import { GuestRoute } from "./GuestRoute";
-import { AdminRoute } from "./AdminRoute";
 import { CustomerRoute } from "./CustomerRoute";
 
 import { CustomerLayout } from "../components/layout/CustomerLayout";
-import { AdminLayout } from "../components/layout/AdminLayout";
 
 export const AppRoutes: React.FC = () => {
   return (
@@ -41,21 +28,7 @@ export const AppRoutes: React.FC = () => {
         </Route>
       </Route>
 
-      {/* Admin Routes (Protected by AdminRoute, rendered inside AdminLayout) */}
-      <Route element={<AdminRoute />}>
-        <Route element={<AdminLayout />}>
-          <Route path="/admin/dashboard" element={<AdminDashboardPage />} />
-          <Route path="/admin/products" element={<AdminProductsPage />} />
-          <Route path="/admin/categories" element={<AdminCategoriesPage />} />
-          <Route path="/admin/orders" element={<AdminOrdersPage />} />
-          <Route path="/admin/customers" element={<AdminCustomersPage />} />
-          <Route path="/admin/payments" element={<AdminPaymentsPage />} />
-          <Route path="/admin/shipping" element={<AdminShippingPage />} />
-          <Route path="/admin/analytics" element={<AdminAnalyticsPage />} />
-        </Route>
-      </Route>
-
-      {/* Customer Routes (Protected from Admin access by CustomerRoute) */}
+      {/* Customer Routes */}
       <Route element={<CustomerRoute />}>
         <Route element={<CustomerLayout />}>
           {/* Public Catalog Routes */}
