@@ -2,7 +2,7 @@ import { createAsyncThunk } from "@reduxjs/toolkit";
 import { authService } from "./auth.service";
 import { storage } from "../../lib/storage";
 import { getErrorMessage } from "../../utils/helpers";
-import type { LoginCredentials, AuthResponse, User } from "./auth.types";
+import type { LoginCredentials, RegisterCredentials, AuthResponse, User } from "./auth.types";
 
 export const loginThunk = createAsyncThunk<
   AuthResponse,
@@ -14,6 +14,26 @@ export const loginThunk = createAsyncThunk<
     if (data.user && data.user.role !== "admin") {
       return rejectWithValue("Access Denied: Only administrators can access the admin control panel.");
     }
+    const token = data.token || data.tokens?.accessToken;
+    if (token) {
+      storage.setToken(token);
+    }
+    if (data.user) {
+      storage.setUser(data.user);
+    }
+    return data;
+  } catch (error) {
+    return rejectWithValue(getErrorMessage(error));
+  }
+});
+
+export const registerThunk = createAsyncThunk<
+  AuthResponse,
+  RegisterCredentials,
+  { rejectValue: string }
+>("auth/register", async (credentials, { rejectWithValue }) => {
+  try {
+    const data = await authService.register({ ...credentials, role: "admin" });
     const token = data.token || data.tokens?.accessToken;
     if (token) {
       storage.setToken(token);

@@ -21,6 +21,13 @@ export interface LoginCredentials {
   password: string;
 }
 
+export interface RegisterCredentials {
+  name: string;
+  email: string;
+  password: string;
+  role: "admin";
+}
+
 export interface AuthTokens {
   accessToken: string;
 }

@@ -1,7 +1,7 @@
 import { createSlice } from "@reduxjs/toolkit";
 import type { PayloadAction } from "@reduxjs/toolkit";
 import { INITIAL_AUTH_STATE } from "./auth.constants";
-import { loginThunk, logoutThunk, getCurrentUserThunk } from "./auth.thunk";
+import { loginThunk, registerThunk, logoutThunk, getCurrentUserThunk } from "./auth.thunk";
 import { storage } from "../../lib/storage";
 import type { User } from "./auth.types";
 
@@ -55,6 +55,26 @@ export const authSlice = createSlice({
       state.user = null;
       state.token = null;
       state.error = action.payload || "Admin login failed";
+    });
+
+    // Register
+    builder.addCase(registerThunk.pending, (state) => {
+      state.isLoading = true;
+      state.error = null;
+    });
+    builder.addCase(registerThunk.fulfilled, (state, action) => {
+      state.isLoading = false;
+      state.isAuthenticated = true;
+      state.user = action.payload.user;
+      state.token = action.payload.token || action.payload.tokens?.accessToken || state.token;
+      state.error = null;
+    });
+    builder.addCase(registerThunk.rejected, (state, action) => {
+      state.isLoading = false;
+      state.isAuthenticated = false;
+      state.user = null;
+      state.token = null;
+      state.error = action.payload || "Admin registration failed";
     });
 
     // Logout

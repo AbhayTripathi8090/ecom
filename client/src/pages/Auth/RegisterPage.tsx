@@ -31,8 +31,6 @@ const registerFormSchema = z
     confirmPassword: z
       .string()
       .min(8, "Please confirm your password"),
-
-    role: z.enum(["user", "admin"]),
   })
   .refine((data) => data.password === data.confirmPassword, {
     message: "Passwords do not match",
@@ -48,22 +46,20 @@ export const RegisterPage: React.FC = () => {
 
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
-  const [selectedRole, setSelectedRole] = useState<"user" | "admin">("user");
 
- const {
-  register,
-  handleSubmit,
-  formState: { errors },
-} = useForm<RegisterFormValues>({
-  resolver: zodResolver(registerFormSchema),
-  defaultValues: {
-    name: "",
-    email: "",
-    password: "",
-    confirmPassword: "",
-    role: "user",
-  },
-});
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+  } = useForm<RegisterFormValues>({
+    resolver: zodResolver(registerFormSchema),
+    defaultValues: {
+      name: "",
+      email: "",
+      password: "",
+      confirmPassword: "",
+    },
+  });
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -77,37 +73,32 @@ export const RegisterPage: React.FC = () => {
     }
   };
 
- const onSubmit: SubmitHandler<RegisterFormValues> = async (data) => {
-  try {
-    const resultAction = await dispatch(
-      registerThunk({
-        name: data.name,
-        email: data.email,
-        password: data.password,
-        role: selectedRole,
-        profileImage: selectedFile,
-      })
-    );
-
-    if (registerThunk.fulfilled.match(resultAction)) {
-      toast.success(
-        selectedRole === "admin"
-          ? "Admin account created successfully!"
-          : "Account created successfully!"
+  const onSubmit: SubmitHandler<RegisterFormValues> = async (data) => {
+    try {
+      const resultAction = await dispatch(
+        registerThunk({
+          name: data.name,
+          email: data.email,
+          password: data.password,
+          role: "user",
+          profileImage: selectedFile,
+        })
       );
 
-      navigate(selectedRole === "admin" ? "/admin/dashboard" : "/");
-    } else {
-      toast.error(
-        typeof resultAction.payload === "string"
-          ? resultAction.payload
-          : "Registration failed"
-      );
+      if (registerThunk.fulfilled.match(resultAction)) {
+        toast.success("Account created successfully!");
+        navigate("/");
+      } else {
+        toast.error(
+          typeof resultAction.payload === "string"
+            ? resultAction.payload
+            : "Registration failed"
+        );
+      }
+    } catch {
+      toast.error("An unexpected error occurred");
     }
-  } catch {
-    toast.error("An unexpected error occurred");
-  }
-};
+  };
 
   return (
     <div className="min-h-[75vh] flex items-center justify-center py-12 px-4">
@@ -116,7 +107,7 @@ export const RegisterPage: React.FC = () => {
           <div className="inline-flex p-3 rounded-xl bg-indigo-500/10 text-indigo-400 mb-2">
             <UserPlus className="w-6 h-6" />
           </div>
-          <h2 className="text-2xl font-bold text-white">Create Account</h2>
+          <h2 className="text-2xl font-bold text-white">Create Customer Account</h2>
           <p className="text-sm text-slate-400">
             Join IdeaCraft today to get started
           </p>
@@ -180,25 +171,8 @@ export const RegisterPage: React.FC = () => {
             {...register("confirmPassword")}
           />
 
-          <div className="space-y-2">
-            <label className="text-sm font-medium text-slate-300">Account Type</label>
-            <select
-              value={selectedRole}
-              onChange={(e) => setSelectedRole(e.target.value as "user" | "admin")}
-              className="w-full rounded-xl border border-slate-700 bg-slate-900/70 px-3 py-2.5 text-sm text-white outline-none focus:border-indigo-500"
-            >
-              <option value="user">Customer</option>
-              <option value="admin">Admin</option>
-            </select>
-            <p className="text-xs text-slate-400">
-              {selectedRole === "admin"
-                ? "Admin accounts can access the dashboard after sign-in."
-                : "Customer accounts can browse products and place orders."}
-            </p>
-          </div>
-
           <Button type="submit" className="w-full" isLoading={isLoading}>
-            Register
+            Create Customer Account
           </Button>
         </form>
 

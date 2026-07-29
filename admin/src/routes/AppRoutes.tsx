@@ -1,6 +1,7 @@
 import React from "react";
 import { Routes, Route, Navigate } from "react-router-dom";
 import { AdminLoginPage } from "../pages/Auth/AdminLoginPage";
+import { AdminRegisterPage } from "../pages/Auth/AdminRegisterPage";
 import {
   AdminDashboardPage,
   AdminProductsPage,
@@ -19,9 +20,10 @@ import { AdminLayout } from "../components/layout/AdminLayout";
 export const AppRoutes: React.FC = () => {
   return (
     <Routes>
-      {/* Guest Route: Login */}
+      {/* Guest Routes: Login & Register */}
       <Route element={<GuestRoute />}>
         <Route path="/login" element={<AdminLoginPage />} />
+        <Route path="/register" element={<AdminRegisterPage />} />
       </Route>
 
       {/* Protected Admin Routes */}

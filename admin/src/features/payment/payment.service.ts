@@ -15,8 +15,9 @@ export const paymentService = {
     return data.payments || data.items || data;
   },
 
-  updatePaymentStatus: async (id: string, paymentStatus: PaymentStatus): Promise<Payment> => {
-    const res: any = await api.patch(PAYMENT_ENDPOINTS.UPDATE_STATUS(id), { paymentStatus });
+  updatePaymentStatus: async (id: string, paymentStatus: PaymentStatus | string): Promise<Payment> => {
+    const status = paymentStatus.toLowerCase() === "successful" ? "paid" : paymentStatus.toLowerCase();
+    const res: any = await api.patch(PAYMENT_ENDPOINTS.UPDATE_STATUS(id), { status });
     const data = res.data || res;
     return data.payment || data;
   },

@@ -6,6 +6,7 @@ import { LoadingSpinner } from "../../components/common/LoadingSpinner";
 
 interface PaymentItem {
   id: string;
+  rawId?: string;
   orderNumber: string;
   customerName: string;
   customerEmail: string;
@@ -22,73 +23,89 @@ export const AdminPaymentsPage: React.FC = () => {
   const [totalProcessed, setTotalProcessed] = useState(0);
   const [pendingSettlements, setPendingSettlements] = useState(0);
   const [activeMethods, setActiveMethods] = useState<string[]>([]);
+  const [updatingId, setUpdatingId] = useState<string | null>(null);
+
+  const fetchPaymentsData = async () => {
+    setIsLoading(true);
+    try {
+      const resPayments: any = await api.get("/payments");
+      const paymentsData = resPayments?.data?.payments || (Array.isArray(resPayments?.data) ? resPayments.data : []);
+
+      const resOrders: any = await api.get("/orders");
+      const ordersData = resOrders?.data?.orders || (Array.isArray(resOrders?.data) ? resOrders.data : []);
+
+      let list: PaymentItem[] = [];
+      let processedSum = 0;
+      let pendingSum = 0;
+      const methodsSet = new Set<string>();
+
+      if (paymentsData.length > 0) {
+        list = paymentsData.map((p: any) => {
+          const isPaid = p.status === "paid" || p.status === "completed";
+          if (isPaid) processedSum += p.amount || 0;
+          else pendingSum += p.amount || 0;
+          if (p.method) methodsSet.add(p.method.toUpperCase());
+
+          return {
+            id: p.transactionId || p._id || p.id,
+            rawId: p._id || p.id,
+            orderNumber: p.order?.orderNumber || "ORD-REF",
+            customerName: p.user?.name || "Customer",
+            customerEmail: p.user?.email || "",
+            amount: p.amount || p.order?.totalAmount || 0,
+            method: p.method || p.provider || "Online",
+            status: p.status || "pending",
+            date: p.createdAt || new Date().toISOString(),
+          };
+        });
+      } else {
+        list = ordersData.map((o: any) => {
+          const isPaid = o.paymentStatus === "paid";
+          if (isPaid) processedSum += o.totalAmount || 0;
+          else pendingSum += o.totalAmount || 0;
+          if (o.paymentMethod) methodsSet.add(o.paymentMethod.toUpperCase());
+
+          return {
+            id: `TXN-${(o.id || o._id || "").slice(-8).toUpperCase()}`,
+            rawId: o.id || o._id,
+            orderNumber: o.orderNumber || (o.id || o._id || "").slice(-6),
+            customerName: o.shippingAddress?.fullName || o.user?.name || "Customer",
+            customerEmail: o.user?.email || "",
+            amount: o.totalAmount || 0,
+            method: o.paymentMethod || "COD",
+            status: o.paymentStatus || "pending",
+            date: o.createdAt,
+          };
+        });
+      }
+
+      setPayments(list);
+      setTotalProcessed(processedSum);
+      setPendingSettlements(pendingSum);
+      setActiveMethods(Array.from(methodsSet));
+    } catch (e) {
+      console.error("Failed to fetch payments data", e);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   useEffect(() => {
-    const fetchPaymentsData = async () => {
-      setIsLoading(true);
-      try {
-        const resPayments: any = await api.get("/payments");
-        const paymentsData = resPayments?.data?.payments || (Array.isArray(resPayments?.data) ? resPayments.data : []);
-
-        const resOrders: any = await api.get("/orders");
-        const ordersData = resOrders?.data?.orders || (Array.isArray(resOrders?.data) ? resOrders.data : []);
-
-        let list: PaymentItem[] = [];
-        let processedSum = 0;
-        let pendingSum = 0;
-        const methodsSet = new Set<string>();
-
-        if (paymentsData.length > 0) {
-          list = paymentsData.map((p: any) => {
-            const isPaid = p.status === "paid" || p.status === "completed";
-            if (isPaid) processedSum += p.amount || 0;
-            else pendingSum += p.amount || 0;
-            if (p.method) methodsSet.add(p.method.toUpperCase());
-
-            return {
-              id: p.transactionId || p._id || p.id,
-              orderNumber: p.order?.orderNumber || "ORD-REF",
-              customerName: p.user?.name || "Customer",
-              customerEmail: p.user?.email || "",
-              amount: p.amount || p.order?.totalAmount || 0,
-              method: p.method || p.provider || "Online",
-              status: p.status || "pending",
-              date: p.createdAt || new Date().toISOString(),
-            };
-          });
-        } else {
-          list = ordersData.map((o: any) => {
-            const isPaid = o.paymentStatus === "paid";
-            if (isPaid) processedSum += o.totalAmount || 0;
-            else pendingSum += o.totalAmount || 0;
-            if (o.paymentMethod) methodsSet.add(o.paymentMethod.toUpperCase());
-
-            return {
-              id: `TXN-${(o.id || o._id || "").slice(-8).toUpperCase()}`,
-              orderNumber: o.orderNumber || (o.id || o._id || "").slice(-6),
-              customerName: o.shippingAddress?.fullName || o.user?.name || "Customer",
-              customerEmail: o.user?.email || "",
-              amount: o.totalAmount || 0,
-              method: o.paymentMethod || "COD",
-              status: o.paymentStatus || "pending",
-              date: o.createdAt,
-            };
-          });
-        }
-
-        setPayments(list);
-        setTotalProcessed(processedSum);
-        setPendingSettlements(pendingSum);
-        setActiveMethods(Array.from(methodsSet));
-      } catch (e) {
-        console.error("Failed to fetch payments data", e);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
     fetchPaymentsData();
   }, []);
+
+  const handleMarkAsPaid = async (payment: PaymentItem) => {
+    if (!payment.rawId) return;
+    setUpdatingId(payment.id);
+    try {
+      await api.patch(`/payments/${payment.rawId}/status`, { status: "paid" });
+      await fetchPaymentsData();
+    } catch (err) {
+      console.error("Failed to update payment status", err);
+    } finally {
+      setUpdatingId(null);
+    }
+  };
 
   return (
     <div className="space-y-6">
@@ -150,6 +167,7 @@ export const AdminPaymentsPage: React.FC = () => {
                   <th className="p-4">Amount</th>
                   <th className="p-4">Date</th>
                   <th className="p-4">Status</th>
+                  <th className="p-4 text-right">Action</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-800/60">
@@ -178,6 +196,19 @@ export const AdminPaymentsPage: React.FC = () => {
                       >
                         {p.status}
                       </span>
+                    </td>
+                    <td className="p-4 text-right">
+                      {p.status === "pending" && p.rawId ? (
+                        <button
+                          disabled={updatingId === p.id}
+                          onClick={() => handleMarkAsPaid(p)}
+                          className="px-3 py-1 text-xs font-medium rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white disabled:opacity-50 transition-colors cursor-pointer"
+                        >
+                          {updatingId === p.id ? "Updating..." : "Mark as Paid"}
+                        </button>
+                      ) : (
+                        <span className="text-xs text-slate-500">—</span>
+                      )}
                     </td>
                   </tr>
                 ))}

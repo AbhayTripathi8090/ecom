@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { useNavigate, useLocation } from "react-router-dom";
+import { useNavigate, useLocation, Link } from "react-router-dom";
 import { ShieldCheck, Lock, Mail } from "lucide-react";
 import { toast } from "react-hot-toast";
 import { useAppDispatch, useAppSelector } from "../../hooks";
@@ -75,8 +75,14 @@ export const AdminLoginPage: React.FC = () => {
           </Button>
         </form>
 
-        <div className="pt-4 border-t border-slate-800 text-center">
-          <p className="text-[11px] text-slate-400">
+        <div className="pt-4 border-t border-slate-800 text-center space-y-2">
+          <p className="text-xs text-slate-400">
+            Need an Admin Account?{" "}
+            <Link to="/register" className="text-indigo-400 hover:underline font-semibold">
+              Register Admin Account
+            </Link>
+          </p>
+          <p className="text-[11px] text-slate-500">
             Role-Based Protected Area • Store Administration Only
           </p>
         </div>
