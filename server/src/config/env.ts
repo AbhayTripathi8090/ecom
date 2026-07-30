@@ -27,6 +27,10 @@ const envSchema = z.object({
   CLOUDINARY_API_SECRET: z.string(),
 
   CLOUDINARY_FOLDER: z.string().default("ecom-assignment"),
+
+  RAZORPAY_KEY_ID: z.string().default("rzp_test_MockRazorpayKeyId12345"),
+
+  RAZORPAY_KEY_SECRET: z.string().default("MockRazorpayKeySecret1234567890"),
 });
 
 export const env = envSchema.parse(process.env);
