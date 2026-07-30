@@ -1,7 +1,7 @@
 import { createSlice } from "@reduxjs/toolkit";
 import type { PayloadAction } from "@reduxjs/toolkit";
 import { INITIAL_AUTH_STATE } from "./auth.constants";
-import { loginThunk, registerThunk, logoutThunk, getCurrentUserThunk } from "./auth.thunk";
+import { loginThunk, registerThunk, logoutThunk, getCurrentUserThunk, uploadProfileImageThunk } from "./auth.thunk";
 import { storage } from "../../lib/storage";
 import type { User } from "./auth.types";
 
@@ -27,6 +27,12 @@ export const authSlice = createSlice({
       state.token = action.payload.token;
       state.isAuthenticated = action.payload.user.role === "admin";
       state.error = null;
+    },
+    updateUser: (state, action: PayloadAction<Partial<User>>) => {
+      if (state.user) {
+        state.user = { ...state.user, ...action.payload };
+        storage.setUser(state.user);
+      }
     },
     resetAuth: (state) => {
       state.user = null;
@@ -101,8 +107,13 @@ export const authSlice = createSlice({
       state.token = null;
       state.isAuthenticated = false;
     });
+
+    // Upload Profile Image
+    builder.addCase(uploadProfileImageThunk.fulfilled, (state, action) => {
+      state.user = action.payload;
+    });
   },
 });
 
-export const { clearError, setAuth, resetAuth } = authSlice.actions;
+export const { clearError, setAuth, updateUser, resetAuth } = authSlice.actions;
 export default authSlice.reducer;

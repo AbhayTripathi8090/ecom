@@ -11,6 +11,7 @@ import {
   AdminPaymentsPage,
   AdminShippingPage,
   AdminAnalyticsPage,
+  AdminProfilePage,
 } from "../pages/Admin";
 import { NotFoundPage } from "../pages/NotFound/NotFoundPage";
 import { AdminRoute } from "./AdminRoute";
@@ -38,6 +39,7 @@ export const AppRoutes: React.FC = () => {
           <Route path="/payments" element={<AdminPaymentsPage />} />
           <Route path="/shipping" element={<AdminShippingPage />} />
           <Route path="/analytics" element={<AdminAnalyticsPage />} />
+          <Route path="/profile" element={<AdminProfilePage />} />
 
           {/* Alias support for legacy /admin/* paths */}
           <Route path="/admin" element={<Navigate to="/dashboard" replace />} />
@@ -49,6 +51,7 @@ export const AppRoutes: React.FC = () => {
           <Route path="/admin/payments" element={<Navigate to="/payments" replace />} />
           <Route path="/admin/shipping" element={<Navigate to="/shipping" replace />} />
           <Route path="/admin/analytics" element={<Navigate to="/analytics" replace />} />
+          <Route path="/admin/profile" element={<Navigate to="/profile" replace />} />
         </Route>
       </Route>
 

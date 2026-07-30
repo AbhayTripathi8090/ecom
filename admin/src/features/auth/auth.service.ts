@@ -33,4 +33,12 @@ export const authService = {
     const data = res.data || res;
     return normalizeMongo<User>(data.user || data);
   },
+
+  uploadProfileImage: async (file: File): Promise<User> => {
+    const formData = new FormData();
+    formData.append("profileImage", file);
+    const res: any = await api.patch("/auth/profile-image", formData);
+    const data = res.data || res;
+    return normalizeMongo<User>(data.user || data);
+  },
 };

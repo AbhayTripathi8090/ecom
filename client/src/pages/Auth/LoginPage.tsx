@@ -9,6 +9,7 @@ import { loginThunk, loginSchema, selectAuthLoading } from "../../features/auth"
 import type { LoginFormData } from "../../features/auth";
 import { Input } from "../../components/ui/Input";
 import { Button } from "../../components/ui/Button";
+import { getErrorMessage } from "../../utils/helpers";
 
 export const LoginPage: React.FC = () => {
   const navigate = useNavigate();
@@ -39,10 +40,21 @@ export const LoginPage: React.FC = () => {
           navigate("/");
         }
       } else {
-        toast.error(resultAction.payload || "Login failed");
+        toast.error(
+          typeof resultAction.payload === "string"
+            ? resultAction.payload
+            : "Login failed. Please verify your credentials."
+        );
       }
     } catch (err: any) {
-      toast.error("An unexpected error occurred");
+      toast.error(getErrorMessage(err));
+    }
+  };
+
+  const onInvalid = (formErrors: any) => {
+    const firstError = Object.values(formErrors)[0] as any;
+    if (firstError?.message) {
+      toast.error(firstError.message);
     }
   };
 
@@ -59,7 +71,7 @@ export const LoginPage: React.FC = () => {
           </p>
         </div>
 
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
+        <form onSubmit={handleSubmit(onSubmit, onInvalid)} className="space-y-5">
           <Input
             label="Email Address"
             type="email"

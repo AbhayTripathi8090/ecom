@@ -6,6 +6,7 @@ export interface AuthUser {
   id: string;
   name: string;
   email: string;
+  phone?: string;
   role: UserRole;
   profileImage?: UserProfileImage;
 }
@@ -19,6 +20,7 @@ export interface UserDocument {
   _id: Types.ObjectId;
   name: string;
   email: string;
+  phone?: string;
   password: string;
   role: UserRole;
   profileImage?: UserProfileImage;

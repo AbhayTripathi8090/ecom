@@ -13,5 +13,5 @@ export const connectDB = async (): Promise<void> => {
     console.error(error)
 
     process.exit(1);
-  }
+  } 
 };

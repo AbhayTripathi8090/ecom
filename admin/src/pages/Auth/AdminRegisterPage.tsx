@@ -6,6 +6,7 @@ import { useAppDispatch, useAppSelector } from "../../hooks";
 import { registerThunk, selectAuthLoading } from "../../features/auth";
 import { Button } from "../../components/ui/Button";
 import { Input } from "../../components/ui/Input";
+import { getErrorMessage } from "../../utils/helpers";
 
 export const AdminRegisterPage: React.FC = () => {
   const dispatch = useAppDispatch();
@@ -55,8 +56,8 @@ export const AdminRegisterPage: React.FC = () => {
             : "Failed to register admin account."
         );
       }
-    } catch {
-      toast.error("An unexpected error occurred during admin registration.");
+    } catch (err: any) {
+      toast.error(getErrorMessage(err));
     }
   };
 

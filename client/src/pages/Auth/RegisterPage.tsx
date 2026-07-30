@@ -9,6 +9,7 @@ import { useAppDispatch, useAppSelector } from "../../hooks";
 import { registerThunk, selectAuthLoading } from "../../features/auth";
 import { Input } from "../../components/ui/Input";
 import { Button } from "../../components/ui/Button";
+import { getErrorMessage } from "../../utils/helpers";
 
 const registerFormSchema = z
   .object({
@@ -92,11 +93,18 @@ export const RegisterPage: React.FC = () => {
         toast.error(
           typeof resultAction.payload === "string"
             ? resultAction.payload
-            : "Registration failed"
+            : "Registration failed. Please review your details."
         );
       }
-    } catch {
-      toast.error("An unexpected error occurred");
+    } catch (err: any) {
+      toast.error(getErrorMessage(err));
+    }
+  };
+
+  const onInvalid = (formErrors: any) => {
+    const firstError = Object.values(formErrors)[0] as any;
+    if (firstError?.message) {
+      toast.error(firstError.message);
     }
   };
 
@@ -113,7 +121,7 @@ export const RegisterPage: React.FC = () => {
           </p>
         </div>
 
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+        <form onSubmit={handleSubmit(onSubmit, onInvalid)} className="space-y-4">
           {/* Profile Image Picker */}
           <div className="flex flex-col items-center justify-center space-y-2 pb-2">
             <label className="relative cursor-pointer group">

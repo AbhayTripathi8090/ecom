@@ -12,6 +12,7 @@ export const updateMeSchema = z
   .object({
     name: z.string().trim().min(2).max(80).optional(),
     email: z.email().toLowerCase().optional(),
+    phone: z.string().trim().optional(),
   })
   .strict();
 

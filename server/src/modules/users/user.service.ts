@@ -9,6 +9,7 @@ const toPublicUser = (user: UserDocument): PublicUser => ({
   id: user._id.toString(),
   name: user.name,
   email: user.email,
+  phone: user.phone,
   role: user.role,
   profileImage: user.profileImage,
   createdAt: user.createdAt,
@@ -30,7 +31,7 @@ export const updateCurrentUser = async (
   input: UpdateMeInput,
   profileImageFile?: Express.Multer.File,
 ): Promise<PublicUser> => {
-  if (!input.name && !input.email && !profileImageFile) {
+  if (!input.name && !input.email && !input.phone && !profileImageFile) {
     throw new AppError("At least one profile field or image is required", 400);
   }
 
@@ -59,6 +60,10 @@ export const updateCurrentUser = async (
 
   if (input.email) {
     user.email = input.email;
+  }
+
+  if (input.phone !== undefined) {
+    user.phone = input.phone;
   }
 
   if (profileImageFile) {
