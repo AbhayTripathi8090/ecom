@@ -1,4 +1,4 @@
-import { Router } from "express";
+import { Router, Request, Response } from "express";
 import adminRoutes from "../modules/admin/admin.routes";
 import authRoutes from "../modules/auth/auth.routes";
 import cartRoutes from "../modules/cart/cart.routes";
@@ -12,7 +12,7 @@ import userRoutes from "../modules/users/user.routes";
 
 const router = Router();
 
-router.get("/health", (_req, res) => {
+router.get("/health", (_req: Request, res: Response) => {
   res.status(200).json({
     success: true,
     message: "Server is healthy",
