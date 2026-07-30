@@ -22,6 +22,10 @@ const userSchema = new Schema<UserDocument>(
       index: true,
       match: [/^\S+@\S+\.\S+$/, "Email is invalid"],
     },
+    phone: {
+      type: String,
+      trim: true,
+    },
     password: {
       type: String,
       required: [true, "Password is required"],

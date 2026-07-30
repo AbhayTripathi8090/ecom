@@ -25,26 +25,31 @@ export const errorHandler: ErrorRequestHandler = (error, _req, res, _next) => {
     message = error.message;
   } else if (error instanceof ZodError) {
     statusCode = 422;
-    message = "Validation failed";
+    const issuesList = error.issues.map((issue) => {
+      const field = issue.path.join(".");
+      return field ? `${field}: ${issue.message}` : issue.message;
+    });
+    message = issuesList.length > 0 ? issuesList.join("; ") : "Validation failed";
     errors = error.flatten();
   } else if (error?.name === "MongoServerError" && error?.code === 11000) {
     statusCode = 409;
-    message = "Resource already exists";
+    const duplicateKeys = error.keyValue ? Object.keys(error.keyValue).join(", ") : "resource";
+    message = `An account or record with this ${duplicateKeys} already exists`;
   } else if (error?.name === "ValidationError") {
     statusCode = 422;
     message = error.message;
   } else if (error?.name === "CastError") {
     statusCode = 400;
-    message = "Invalid resource id";
+    message = `Invalid resource id: ${error.value}`;
   } else if (error?.name === "MulterError") {
     statusCode = 400;
-    message = error.message;
+    message = `File upload error: ${error.message}`;
   } else if (error?.name === "JsonWebTokenError") {
     statusCode = 401;
-    message = "Invalid authentication token";
+    message = "Invalid authentication token. Please sign in again.";
   } else if (error?.name === "TokenExpiredError") {
     statusCode = 401;
-    message = "Authentication token expired";
+    message = "Authentication session expired. Please sign in again.";
   }
 
   const response: ErrorResponse = {

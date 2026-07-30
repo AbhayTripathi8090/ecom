@@ -79,3 +79,17 @@ export const getCurrentUserThunk = createAsyncThunk<
     return rejectWithValue(getErrorMessage(error));
   }
 });
+
+export const uploadProfileImageThunk = createAsyncThunk<
+  User,
+  File,
+  { rejectValue: string }
+>("auth/uploadProfileImage", async (file, { rejectWithValue }) => {
+  try {
+    const user = await authService.uploadProfileImage(file);
+    storage.setUser(user);
+    return user;
+  } catch (error) {
+    return rejectWithValue(getErrorMessage(error));
+  }
+});

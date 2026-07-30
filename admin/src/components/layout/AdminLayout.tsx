@@ -12,6 +12,7 @@ import {
   ShieldCheck,
   LogOut,
   Sparkles,
+  User as UserIcon,
 } from "lucide-react";
 import { useAppDispatch, useAppSelector } from "../../hooks";
 import { selectCurrentUser, logoutThunk, getUserAvatarUrl } from "../../features/auth";
@@ -37,6 +38,7 @@ export const AdminLayout: React.FC = () => {
     { label: "Payments", path: "/payments", icon: CreditCard },
     { label: "Shipping", path: "/shipping", icon: Truck },
     { label: "Analytics", path: "/analytics", icon: BarChart3 },
+    { label: "My Profile", path: "/profile", icon: UserIcon },
   ];
 
   return (
@@ -110,12 +112,15 @@ export const AdminLayout: React.FC = () => {
 
           <div className="flex items-center space-x-4">
             {user && (
-              <div className="flex items-center space-x-3 bg-slate-900 border border-slate-800 px-3 py-1.5 rounded-xl">
+              <Link
+                to="/profile"
+                className="flex items-center space-x-3 bg-slate-900 hover:bg-slate-800/80 border border-slate-800 hover:border-slate-700 px-3 py-1.5 rounded-xl transition-all group cursor-pointer"
+              >
                 {avatarUrl ? (
                   <img
                     src={avatarUrl}
                     alt={user.name}
-                    className="w-7 h-7 rounded-full object-cover ring-2 ring-indigo-500/40"
+                    className="w-7 h-7 rounded-full object-cover ring-2 ring-indigo-500/40 group-hover:ring-indigo-400 transition-all"
                   />
                 ) : (
                   <div className="w-7 h-7 rounded-full bg-linear-to-tr from-indigo-600 to-violet-600 flex items-center justify-center text-white text-xs font-bold">
@@ -123,10 +128,12 @@ export const AdminLayout: React.FC = () => {
                   </div>
                 )}
                 <div className="flex flex-col text-left">
-                  <span className="text-xs font-bold text-white">{user.name}</span>
+                  <span className="text-xs font-bold text-white group-hover:text-indigo-400 transition-colors">
+                    {user.name}
+                  </span>
                   <span className="text-[10px] text-slate-400 capitalize">{user.role}</span>
                 </div>
-              </div>
+              </Link>
             )}
 
             <Button

@@ -6,6 +6,7 @@ import { useAppDispatch, useAppSelector } from "../../hooks";
 import { loginThunk, selectAuthLoading, selectAuthError } from "../../features/auth";
 import { Button } from "../../components/ui/Button";
 import { Input } from "../../components/ui/Input";
+import { getErrorMessage } from "../../utils/helpers";
 
 export const AdminLoginPage: React.FC = () => {
   const dispatch = useAppDispatch();
@@ -31,10 +32,14 @@ export const AdminLoginPage: React.FC = () => {
         toast.success("Welcome back, Admin!");
         navigate(from, { replace: true });
       } else {
-        toast.error(resultAction.payload || "Login failed. Ensure you have admin privileges.");
+        toast.error(
+          typeof resultAction.payload === "string"
+            ? resultAction.payload
+            : "Login failed. Ensure you have admin privileges."
+        );
       }
-    } catch {
-      toast.error("An unexpected error occurred during login.");
+    } catch (err: any) {
+      toast.error(getErrorMessage(err));
     }
   };
 
