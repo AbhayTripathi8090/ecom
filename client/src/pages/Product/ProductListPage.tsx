@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
-import { Search, Filter, ArrowUpDown, ShoppingBag, Star, Sparkles } from "lucide-react";
+import { Search, Filter, ArrowUpDown, ShoppingBag, Star, Sparkles, Heart } from "lucide-react";
 import { useAppDispatch, useAppSelector } from "../../hooks";
 import {
   fetchProductsThunk,
@@ -11,6 +11,13 @@ import {
   fetchCategoriesThunk,
   selectCategories,
 } from "../../features/category";
+import {
+  fetchWishlistThunk,
+  addToWishlistThunk,
+  removeFromWishlistThunk,
+  selectWishlistItems,
+} from "../../features/wishlist";
+import { selectAuth } from "../../features/auth";
 import { LoadingSpinner } from "../../components/common/LoadingSpinner";
 import { Input } from "../../components/ui/Input";
 import { formatCurrency } from "../../utils/formatters";
@@ -22,6 +29,8 @@ export const ProductListPage: React.FC = () => {
   const products = useAppSelector(selectProducts);
   const categories = useAppSelector(selectCategories);
   const isLoading = useAppSelector(selectProductLoading);
+  const wishlistItems = useAppSelector(selectWishlistItems);
+  const { isAuthenticated } = useAppSelector(selectAuth);
 
   const [searchQuery, setSearchQuery] = useState(searchParams.get("search") || "");
   const [selectedCategory, setSelectedCategory] = useState(searchParams.get("category") || "");
@@ -29,7 +38,10 @@ export const ProductListPage: React.FC = () => {
 
   useEffect(() => {
     dispatch(fetchCategoriesThunk());
-  }, [dispatch]);
+    if (isAuthenticated) {
+      dispatch(fetchWishlistThunk());
+    }
+  }, [dispatch, isAuthenticated]);
 
   useEffect(() => {
     const query: any = {};
@@ -48,6 +60,14 @@ export const ProductListPage: React.FC = () => {
       searchParams.delete("category");
     }
     setSearchParams(searchParams);
+  };
+
+  const handleToggleWishlist = (productId: string, inWishlist: boolean) => {
+    if (inWishlist) {
+      dispatch(removeFromWishlistThunk(productId));
+    } else {
+      dispatch(addToWishlistThunk(productId));
+    }
   };
 
   return (
@@ -136,6 +156,10 @@ export const ProductListPage: React.FC = () => {
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
           {products.map((product) => {
             const mainImg = product.images?.[0]?.url;
+            const inWishlist = wishlistItems.some(
+              (item) => item.id === product.id || (item as any)._id === product.id,
+            );
+
             return (
               <div
                 key={product.id}
@@ -158,10 +182,25 @@ export const ProductListPage: React.FC = () => {
                         Sale
                       </span>
                     )}
-                    {product.isFeatured && (
-                      <span className="absolute top-3 right-3 bg-indigo-600 text-white text-[10px] font-bold px-2 py-0.5 rounded-full shadow-md">
-                        Featured
-                      </span>
+
+                    {isAuthenticated && (
+                      <button
+                        onClick={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          handleToggleWishlist(product.id, inWishlist);
+                        }}
+                        className={`absolute top-3 right-3 p-2 rounded-full backdrop-blur-md transition-all shadow-md ${
+                          inWishlist
+                            ? "bg-rose-500 text-white"
+                            : "bg-slate-950/60 hover:bg-slate-900 text-slate-400 hover:text-white"
+                        }`}
+                        title={inWishlist ? "Remove from wishlist" : "Add to wishlist"}
+                      >
+                        <Heart
+                          className={`w-4 h-4 ${inWishlist ? "fill-white" : ""}`}
+                        />
+                      </button>
                     )}
                   </div>
 

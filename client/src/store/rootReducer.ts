@@ -7,6 +7,7 @@ import cartReducer from "../features/cart/cart.slice";
 import orderReducer from "../features/order/order.slice";
 import paymentReducer from "../features/payment/payment.slice";
 import shippingReducer from "../features/shipping/shipping.slice";
+import wishlistReducer from "../features/wishlist/wishlist.slice";
 
 export const rootReducer = combineReducers({
   auth: authReducer,
@@ -14,6 +15,7 @@ export const rootReducer = combineReducers({
   category: categoryReducer,
   product: productReducer,
   cart: cartReducer,
+  wishlist: wishlistReducer,
   order: orderReducer,
   payment: paymentReducer,
   shipping: shippingReducer,
