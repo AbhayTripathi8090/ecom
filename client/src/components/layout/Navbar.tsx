@@ -15,6 +15,7 @@ import {
 import { useAppSelector, useAppDispatch } from "../../hooks";
 import { selectAuth, logoutThunk, getUserAvatarUrl } from "../../features/auth";
 import { selectCartItemCount } from "../../features/cart";
+import { selectWishlistCount } from "../../features/wishlist";
 import { Button } from "../ui/Button";
 
 export const Navbar: React.FC = () => {
@@ -23,6 +24,7 @@ export const Navbar: React.FC = () => {
   const dispatch = useAppDispatch();
   const { isAuthenticated, user } = useAppSelector(selectAuth);
   const cartCount = useAppSelector(selectCartItemCount);
+  const wishlistCount = useAppSelector(selectWishlistCount);
 
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -156,10 +158,17 @@ export const Navbar: React.FC = () => {
                     <Link
                       to="/wishlist"
                       onClick={() => setIsProfileOpen(false)}
-                      className="flex items-center px-4 py-2.5 text-sm text-slate-300 hover:text-white hover:bg-indigo-600/10 transition-colors gap-3"
+                      className="flex items-center justify-between px-4 py-2.5 text-sm text-slate-300 hover:text-white hover:bg-indigo-600/10 transition-colors"
                     >
-                      <Heart className="w-4 h-4 text-rose-400" />
-                      <span>Wishlist</span>
+                      <div className="flex items-center gap-3">
+                        <Heart className="w-4 h-4 text-rose-400" />
+                        <span>Wishlist</span>
+                      </div>
+                      {wishlistCount > 0 && (
+                        <span className="rounded-full bg-rose-500 px-2 py-0.5 text-xs font-semibold text-white">
+                          {wishlistCount}
+                        </span>
+                      )}
                     </Link>
 
                     <Link
@@ -263,10 +272,17 @@ export const Navbar: React.FC = () => {
               </Link>
               <Link
                 to="/wishlist"
-                className="flex items-center gap-3 px-3 py-2 rounded-lg text-slate-300 hover:text-white hover:bg-slate-900 text-sm"
+                className="flex items-center justify-between px-3 py-2 rounded-lg text-slate-300 hover:text-white hover:bg-slate-900 text-sm"
               >
-                <Heart className="w-4 h-4 text-rose-400" />
-                Wishlist
+                <div className="flex items-center gap-3">
+                  <Heart className="w-4 h-4 text-rose-400" />
+                  Wishlist
+                </div>
+                {wishlistCount > 0 && (
+                  <span className="rounded-full bg-rose-500 px-2 py-0.5 text-xs font-semibold text-white">
+                    {wishlistCount}
+                  </span>
+                )}
               </Link>
               <Link
                 to="/cart"

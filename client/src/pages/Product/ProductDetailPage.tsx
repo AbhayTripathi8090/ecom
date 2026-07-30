@@ -12,6 +12,7 @@ import {
   Layers,
   ArrowLeft,
   Sparkles,
+  Heart,
 } from "lucide-react";
 import { useAppDispatch, useAppSelector } from "../../hooks";
 import {
@@ -20,6 +21,13 @@ import {
   selectProductLoading,
 } from "../../features/product";
 import { addToCartThunk } from "../../features/cart";
+import {
+  fetchWishlistThunk,
+  addToWishlistThunk,
+  removeFromWishlistThunk,
+  selectWishlistItems,
+} from "../../features/wishlist";
+import { selectAuth } from "../../features/auth";
 import type { MerchandiseSize, PrintType, PrintLocation } from "../../features/product";
 import { LoadingSpinner } from "../../components/common/LoadingSpinner";
 import { Button } from "../../components/ui/Button";
@@ -50,6 +58,9 @@ export const ProductDetailPage: React.FC = () => {
   const product = useAppSelector(selectSelectedProduct);
   const isLoading = useAppSelector(selectProductLoading);
 
+  const wishlistItems = useAppSelector(selectWishlistItems);
+  const { isAuthenticated } = useAppSelector(selectAuth);
+
   const [selectedSize, setSelectedSize] = useState<MerchandiseSize>("L");
   const [selectedColor, setSelectedColor] = useState<string>("Black");
   const [selectedPrintType, setSelectedPrintType] = useState<PrintType>("DTF Printing");
@@ -64,7 +75,25 @@ export const ProductDetailPage: React.FC = () => {
     if (id) {
       dispatch(fetchProductByIdThunk(id));
     }
-  }, [dispatch, id]);
+    if (isAuthenticated) {
+      dispatch(fetchWishlistThunk());
+    }
+  }, [dispatch, id, isAuthenticated]);
+
+  const inWishlist = wishlistItems.some(
+    (item) => item.id === product?.id || (item as any)._id === product?.id,
+  );
+
+  const handleToggleWishlist = () => {
+    if (!product) return;
+    if (inWishlist) {
+      dispatch(removeFromWishlistThunk(product.id));
+      toast.success("Removed from Wishlist");
+    } else {
+      dispatch(addToWishlistThunk(product.id));
+      toast.success("Added to Wishlist");
+    }
+  };
 
   const handleArtworkChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -362,16 +391,32 @@ export const ProductDetailPage: React.FC = () => {
               </span>
             </div>
 
-            <Button
-              onClick={handleAddToCart}
-              className="w-full"
-              size="lg"
-              variant="primary"
-              disabled={!product.isActive || product.stock < 1}
-            >
-              <Sparkles className="w-4 h-4 mr-2" />
-              Add Custom Merchandise To Cart
-            </Button>
+            <div className="flex items-center gap-3">
+              <Button
+                onClick={handleAddToCart}
+                className="flex-grow"
+                size="lg"
+                variant="primary"
+                disabled={!product.isActive || product.stock < 1}
+              >
+                <Sparkles className="w-4 h-4 mr-2" />
+                Add Custom Merchandise To Cart
+              </Button>
+
+              {isAuthenticated && (
+                <button
+                  onClick={handleToggleWishlist}
+                  className={`p-3 rounded-xl border transition-all flex items-center justify-center cursor-pointer ${
+                    inWishlist
+                      ? "bg-rose-500/20 border-rose-500/40 text-rose-400 hover:bg-rose-500/30"
+                      : "bg-slate-900 border-slate-800 text-slate-400 hover:text-white hover:bg-slate-800"
+                  }`}
+                  title={inWishlist ? "Remove from Wishlist" : "Save to Wishlist"}
+                >
+                  <Heart className={`w-5 h-5 ${inWishlist ? "fill-rose-500 text-rose-500" : ""}`} />
+                </button>
+              )}
+            </div>
           </div>
 
           {/* Trust Guarantees */}
