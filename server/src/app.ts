@@ -15,7 +15,7 @@ const allowedOrigins = env.CORS_ORIGIN.split(",").map((o) => o.trim());
 app.use(
   cors({
     origin: (origin, callback) => {
-      if (!origin || allowedOrigins.includes(origin)) {
+      if (!origin || allowedOrigins.includes("*") || allowedOrigins.includes(origin)) {
         callback(null, true);
       } else {
         callback(new Error("Not allowed by CORS"));
@@ -31,8 +31,16 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 
-app.use("/api", routes);
+app.get("/", (_req, res) => {
+  res.status(200).json({
+    success: true,
+    message: "Server is healthy and running",
+  });
+});
+
 app.use("/api/v1", routes);
+app.use("/api", routes);
+app.use("/", routes);
 
 app.use(notFoundHandler);
 app.use(errorHandler);
