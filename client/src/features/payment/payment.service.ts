@@ -20,4 +20,21 @@ export const paymentService = {
     const data = res.data || res;
     return data.payment || data;
   },
+
+  createRazorpayOrder: async (
+    orderId: string,
+  ): Promise<{ razorpayOrderId: string; amount: number; currency: string; keyId: string }> => {
+    const res: any = await api.post(PAYMENT_ENDPOINTS.CREATE_RAZORPAY_ORDER, { orderId });
+    const data = res.data || res;
+    return data.data || data;
+  },
+
+  verifyRazorpayPayment: async (payload: {
+    orderId: string;
+    razorpayOrderId: string;
+    razorpayPaymentId: string;
+    razorpaySignature: string;
+  }): Promise<void> => {
+    await api.post(PAYMENT_ENDPOINTS.VERIFY_RAZORPAY_PAYMENT, payload);
+  },
 };

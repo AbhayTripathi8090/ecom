@@ -1,14 +1,29 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-hot-toast";
-import { CreditCard, MapPin, ShieldCheck, CheckCircle2, Lock } from "lucide-react";
+import { CreditCard, MapPin, ShieldCheck, CheckCircle2, Lock, Smartphone } from "lucide-react";
 import { useAppDispatch, useAppSelector } from "../../hooks";
 import { selectCartItems, selectCartSummary, clearCartThunk, clearCartLocal } from "../../features/cart";
 import { createOrderThunk, selectOrderLoading } from "../../features/order";
 import { fetchMyAddressesThunk, selectSavedAddresses } from "../../features/shipping";
+import { paymentService } from "../../features/payment/payment.service";
 import { Input } from "../../components/ui/Input";
 import { Button } from "../../components/ui/Button";
 import { formatCurrency } from "../../utils/formatters";
+
+const loadRazorpayScript = (): Promise<boolean> => {
+  return new Promise((resolve) => {
+    if ((window as any).Razorpay) {
+      resolve(true);
+      return;
+    }
+    const script = document.createElement("script");
+    script.src = "https://checkout.razorpay.com/v1/checkout.js";
+    script.onload = () => resolve(true);
+    script.onerror = () => resolve(false);
+    document.body.appendChild(script);
+  });
+};
 
 export const CheckoutPage: React.FC = () => {
   const navigate = useNavigate();
@@ -30,7 +45,7 @@ export const CheckoutPage: React.FC = () => {
     country: "India",
   });
 
-  const [paymentMethod, setPaymentMethod] = useState<"cod" | "card" | "upi" | "netbanking">("cod");
+  const [paymentMethod, setPaymentMethod] = useState<"razorpay" | "cod" | "upi">("razorpay");
   const [isProcessingPayment, setIsProcessingPayment] = useState(false);
 
   useEffect(() => {
@@ -51,29 +66,39 @@ export const CheckoutPage: React.FC = () => {
     toast.success("Loaded saved address details");
   };
 
-  const handlePlaceOrder = async (e: React.FormEvent) => {
-    e.preventDefault();
-
+  const validateCheckout = (): boolean => {
     if (!address.fullName || !address.phone || !address.addressLine1 || !address.city || !address.postalCode) {
       toast.error("Please fill in all required shipping address fields.");
-      return;
+      return false;
     }
 
     if (cartItems.length === 0) {
       toast.error("Your cart is empty.");
       navigate("/products");
+      return false;
+    }
+    return true;
+  };
+
+  // Standard (COD / Manual UPI) Order Execution
+  const handlePlaceOrder = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    if (!validateCheckout()) return;
+
+    if (paymentMethod === "razorpay") {
+      await handleRazorpayPayment();
       return;
     }
 
     setIsProcessingPayment(true);
 
     try {
-      // 1. Simulate Payment Verification Step
-      await new Promise((resolve) => setTimeout(resolve, 1500));
+      await new Promise((resolve) => setTimeout(resolve, 1000));
 
       const orderInput = {
         shippingAddress: address,
-        paymentMethod,
+        paymentMethod: paymentMethod === "upi" ? ("upi" as const) : ("cod" as const),
         tax: summary.tax,
         shippingFee: summary.shipping,
         discount: summary.discount,
@@ -85,7 +110,7 @@ export const CheckoutPage: React.FC = () => {
         const createdOrder = resultAction.payload;
         dispatch(clearCartLocal());
         dispatch(clearCartThunk());
-        toast.success("Payment Verified! Order Placed Successfully.");
+        toast.success("Order Placed Successfully!");
         navigate(`/orders/${createdOrder.id}`);
       } else {
         toast.error(resultAction.payload || "Failed to place order.");
@@ -93,6 +118,100 @@ export const CheckoutPage: React.FC = () => {
     } catch {
       toast.error("An error occurred during order checkout.");
     } finally {
+      setIsProcessingPayment(false);
+    }
+  };
+
+  // Razorpay Checkout Execution
+  const handleRazorpayPayment = async () => {
+    if (!validateCheckout()) return;
+
+    setIsProcessingPayment(true);
+
+    try {
+      const isLoaded = await loadRazorpayScript();
+      if (!isLoaded) {
+        toast.error("Failed to load Razorpay SDK. Please check your internet connection.");
+        setIsProcessingPayment(false);
+        return;
+      }
+
+      // 1. Create Pending Order
+      const orderInput = {
+        shippingAddress: address,
+        paymentMethod: "upi" as const,
+        tax: summary.tax,
+        shippingFee: summary.shipping,
+        discount: summary.discount,
+      };
+
+      const resultAction = await dispatch(createOrderThunk(orderInput));
+      if (!createOrderThunk.fulfilled.match(resultAction)) {
+        toast.error(resultAction.payload || "Failed to create order for Razorpay.");
+        setIsProcessingPayment(false);
+        return;
+      }
+
+      const createdOrder = resultAction.payload;
+
+      // 2. Fetch Razorpay Order ID from backend
+      const rzpOrderData = await paymentService.createRazorpayOrder(createdOrder.id);
+
+      // 3. Trigger Razorpay Checkout Popup
+      const options = {
+        key: rzpOrderData.keyId || import.meta.env.VITE_RAZORPAY_KEY_ID || "rzp_test_MockRazorpayKeyId12345",
+        amount: Math.round(summary.total * 100),
+        currency: rzpOrderData.currency || "INR",
+        name: "IdeaCraft Merchandise",
+        description: `Order #${createdOrder.orderNumber}`,
+        order_id: rzpOrderData.razorpayOrderId.startsWith("order_rzp_mock_") ? undefined : rzpOrderData.razorpayOrderId,
+        prefill: {
+          name: address.fullName,
+          contact: address.phone,
+        },
+        theme: {
+          color: "#4f46e5",
+        },
+        handler: async (response: any) => {
+          try {
+            await paymentService.verifyRazorpayPayment({
+              orderId: createdOrder.id,
+              razorpayOrderId: response.razorpay_order_id || rzpOrderData.razorpayOrderId,
+              razorpayPaymentId: response.razorpay_payment_id || `pay_rzp_demo_${Date.now()}`,
+              razorpaySignature: response.razorpay_signature || "mock_sig",
+            });
+            dispatch(clearCartLocal());
+            dispatch(clearCartThunk());
+            toast.success("Razorpay Payment Verified! Order Placed Successfully.");
+            navigate(`/orders/${createdOrder.id}`);
+          } catch (err: any) {
+            toast.error(err.response?.data?.message || "Razorpay Payment verification failed.");
+          } finally {
+            setIsProcessingPayment(false);
+          }
+        },
+        modal: {
+          ondismiss: () => {
+            toast.error("Razorpay Payment cancelled by user.");
+            setIsProcessingPayment(false);
+          },
+        },
+      };
+
+      if (!rzpOrderData.razorpayOrderId.startsWith("order_rzp_mock_") && (window as any).Razorpay) {
+        const rzp = new (window as any).Razorpay(options);
+        rzp.open();
+      } else {
+        // Mock fallback mode execution
+        await new Promise((resolve) => setTimeout(resolve, 1200));
+        await options.handler({
+          razorpay_order_id: rzpOrderData.razorpayOrderId,
+          razorpay_payment_id: `pay_rzp_demo_${Date.now()}`,
+          razorpay_signature: "mock_signature",
+        });
+      }
+    } catch (err: any) {
+      toast.error(err.message || "An error occurred during Razorpay checkout.");
       setIsProcessingPayment(false);
     }
   };
@@ -107,7 +226,7 @@ export const CheckoutPage: React.FC = () => {
         <h1 className="text-3xl sm:text-4xl font-extrabold text-white">Checkout & Order Placement</h1>
       </div>
 
-      <form onSubmit={handlePlaceOrder} className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
         {/* Left Column: Address & Payment Method */}
         <div className="lg:col-span-8 space-y-6">
           {/* Shipping Address Section */}
@@ -147,7 +266,7 @@ export const CheckoutPage: React.FC = () => {
               />
               <Input
                 label="Phone Number *"
-                placeholder="+91 9876543210"
+                placeholder="+$91 9876543210"
                 value={address.phone}
                 onChange={(e) => setAddress({ ...address, phone: e.target.value })}
                 required
@@ -203,9 +322,9 @@ export const CheckoutPage: React.FC = () => {
 
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
               {[
+                { label: "Razorpay (UPI / Cards / Netbanking)", value: "razorpay", desc: "Instant UPI, Cards, Netbanking (Razorpay)" },
                 { label: "Cash on Delivery", value: "cod", desc: "Pay when order arrives" },
-                { label: "Card", value: "card", desc: "Manual card payment record" },
-                { label: "UPI", value: "upi", desc: "Manual UPI payment record" },
+                { label: "Manual UPI / Netbanking", value: "upi", desc: "Manual payment verification" },
               ].map((pm) => (
                 <button
                   key={pm.value}
@@ -225,6 +344,19 @@ export const CheckoutPage: React.FC = () => {
                 </button>
               ))}
             </div>
+
+            {/* Razorpay Banner when Razorpay is active */}
+            {paymentMethod === "razorpay" && (
+              <div className="p-4 rounded-xl bg-slate-900 border border-slate-800 space-y-2">
+                <div className="flex items-center space-x-2 text-indigo-400 font-semibold text-sm">
+                  <Smartphone className="w-4 h-4" />
+                  <span>Razorpay Instant Gateway Selected</span>
+                </div>
+                <p className="text-xs text-slate-400">
+                  Click the button below to launch the official Razorpay Checkout popup supporting Google Pay, PhonePe, Paytm, BHIM UPI, Debit/Credit Cards, and Netbanking.
+                </p>
+              </div>
+            )}
           </div>
         </div>
 
@@ -266,22 +398,24 @@ export const CheckoutPage: React.FC = () => {
             </div>
 
             <Button
-              type="submit"
+              onClick={handlePlaceOrder}
               isLoading={isProcessingPayment || isOrderLoading}
-              className="w-full"
+              className="w-full shadow-lg shadow-indigo-600/20"
               size="lg"
               variant="primary"
             >
-              Confirm & Pay {formatCurrency(summary.total)}
+              {paymentMethod === "razorpay"
+                ? `Pay via Razorpay ${formatCurrency(summary.total)}`
+                : `Confirm & Pay ${formatCurrency(summary.total)}`}
             </Button>
           </div>
 
           <div className="flex items-center space-x-2 text-xs text-slate-400 justify-center">
             <ShieldCheck className="w-4 h-4 text-emerald-400" />
-            <span>Bank Grade 256-bit SSL Payment Gateway</span>
+            <span>Bank Grade 256-bit Encrypted Payment Gateway</span>
           </div>
         </div>
-      </form>
+      </div>
     </div>
   );
 };
