@@ -84,11 +84,17 @@ The admin portal will run on `http://localhost:5174` (or next available port).
 | `CLOUDINARY_CLOUD_NAME` | Cloudinary Cloud Name | `your_cloud_name` |
 | `CLOUDINARY_API_KEY` | Cloudinary API Key | `your_api_key` |
 | `CLOUDINARY_API_SECRET` | Cloudinary API Secret | `your_api_secret` |
+| `STRIPE_SECRET_KEY` | Stripe Secret API Key | `sk_test_...` |
+| `STRIPE_WEBHOOK_SECRET` | Stripe Webhook Signing Secret | `whsec_...` |
+| `RAZORPAY_KEY_ID` | Razorpay Key ID | `rzp_test_...` |
+| `RAZORPAY_KEY_SECRET` | Razorpay Key Secret | `your_razorpay_secret` |
 
 ### Client (`client/.env`)
 | Variable | Description | Value |
 | :--- | :--- | :--- |
 | `VITE_API_URL` | Base REST API URL | `http://localhost:5000/api` |
+| `VITE_STRIPE_PUBLIC_KEY` | Stripe Publishable Key | `pk_test_...` |
+| `VITE_RAZORPAY_KEY_ID` | Razorpay Key ID | `rzp_test_...` |
 
 ### Admin (`admin/.env`)
 | Variable | Description | Value |
@@ -106,7 +112,7 @@ The project uses MongoDB with Mongoose ODM. Schemas are structured modularly und
 - **Cart**: User cart items with quantities and custom printing specifications.
 - **Wishlist**: Saved product collection per user for easy access and purchase.
 - **Orders**: Customer orders, item snapshots, shipping addresses, order status tracking.
-- **Payments**: Payment tracking and status updates.
+- **Payments**: Payment tracking, Razorpay Orders, Stripe PaymentIntents, signature verification, webhook handlers, and manual verification.
 - **Shipping**: Shipping methods, rates, and tracking details.
 
 ---
@@ -160,5 +166,14 @@ Base Endpoint: `http://localhost:5000/api/v1`
 - `GET /orders/:id` - Fetch order by ID
 - `POST /orders` - Create new order from current cart
 - `PATCH /orders/:id/status` *(Admin)* - Update order fulfillment status
+
+### Payment Routes (`/payments`)
+- `POST /payments/razorpay/create-order` - Create Razorpay Order ID for checkout
+- `POST /payments/razorpay/verify` - Verify Razorpay payment signature
+- `POST /payments/stripe/create-intent` - Create Stripe PaymentIntent for an order
+- `POST /payments/stripe/webhook` - Stripe Webhook listener for payment events
+- `GET /payments/order/:orderId` - Fetch payment details by Order ID
+- `PATCH /payments/:id/status` *(Admin)* - Update payment status manually
+
 
 ---
