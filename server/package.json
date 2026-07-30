@@ -36,6 +36,7 @@
     "mongoose": "^9.8.0",
     "morgan": "^1.11.0",
     "multer": "^2.2.0",
+    "razorpay": "^2.9.8",
     "typescript": "^5.8.3",
     "zod": "^4.4.3"
   },
