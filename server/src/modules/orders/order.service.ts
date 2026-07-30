@@ -31,14 +31,14 @@ export const createOrderFromCart = async (
     await session.withTransaction(async () => {
       const cart = await Cart.findOne({ user: userId }).session(session);
 
-      if (!cart || cart.items.length === 0) {
+      if (!cart || (cart.items as any[]).length === 0) {
         throw new AppError("Cart is empty", 400);
       }
 
       const orderItems = [];
       let subtotal = 0;
 
-      for (const item of cart.items) {
+      for (const item of cart.items as any[]) {
         const product = await Product.findOne({
           _id: item.product,
           isActive: true,
@@ -105,7 +105,7 @@ export const createOrderFromCart = async (
         { session },
       );
 
-      cart.items.splice(0, cart.items.length);
+      cart.items.splice(0, (cart.items as any[]).length);
       cart.totalItems = 0;
       cart.totalAmount = 0;
       await cart.save({ session });
@@ -201,7 +201,7 @@ export const updateOrderStatus = async (
       }
 
       if (input.orderStatus === "cancelled" && !wasCancelled) {
-        for (const item of order.items) {
+        for (const item of order.items as any[]) {
           await Product.updateOne(
             { _id: item.product },
             { $inc: { stock: item.quantity } },
@@ -237,7 +237,7 @@ export const cancelMyOrder = async (orderId: string, userId: string) => {
         throw new AppError("Order cannot be cancelled now", 400);
       }
 
-      for (const item of order.items) {
+      for (const item of order.items as any[]) {
         await Product.updateOne(
           { _id: item.product },
           { $inc: { stock: item.quantity } },

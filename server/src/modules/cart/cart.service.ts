@@ -56,7 +56,7 @@ export const addCartItem = async (userId: string, input: AddCartItemInput) => {
     { new: true, upsert: true },
   );
   const productId = new Types.ObjectId(input.productId);
-  const item = cart.items.find((cartItem) =>
+  const item = (cart.items as any[]).find((cartItem: any) =>
     cartItem.product.equals(productId),
   );
 
@@ -77,7 +77,7 @@ export const addCartItem = async (userId: string, input: AddCartItemInput) => {
     });
   }
 
-  recalculateCart(cart);
+  recalculateCart(cart as any);
   await cart.save();
 
   return cart.populate(cartPopulate);
@@ -107,7 +107,7 @@ export const updateCartItem = async (
     throw new AppError("Not enough stock available", 400);
   }
 
-  const item = cart.items.find((cartItem) =>
+  const item = (cart.items as any[]).find((cartItem: any) =>
     cartItem.product.equals(productId),
   );
 
@@ -118,7 +118,7 @@ export const updateCartItem = async (
   item.quantity = input.quantity;
   item.price = getProductSalePrice(product);
 
-  recalculateCart(cart);
+  recalculateCart(cart as any);
   await cart.save();
 
   return cart.populate(cartPopulate);
@@ -131,11 +131,11 @@ export const removeCartItem = async (userId: string, productId: string) => {
     throw new AppError("Cart not found", 404);
   }
 
-  const nextItems = cart.items.filter(
-    (item) => !item.product.equals(productId),
+  const nextItems = (cart.items as any[]).filter(
+    (item: any) => !item.product.equals(productId),
   );
-  cart.items.splice(0, cart.items.length, ...nextItems);
-  recalculateCart(cart);
+  cart.items.splice(0, (cart.items as any[]).length, ...nextItems);
+  recalculateCart(cart as any);
   await cart.save();
 
   return cart.populate(cartPopulate);

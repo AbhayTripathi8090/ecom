@@ -1,4 +1,4 @@
-import type { ErrorRequestHandler, RequestHandler } from "express";
+import type { ErrorRequestHandler, RequestHandler, Request, Response, NextFunction } from "express";
 import { ZodError } from "zod";
 import { AppError } from "../utils/AppError";
 import { env } from "../config/env";
@@ -10,11 +10,11 @@ type ErrorResponse = {
   stack?: string;
 };
 
-export const notFoundHandler: RequestHandler = (req, _res, next) => {
+export const notFoundHandler: RequestHandler = (req: Request, _res: Response, next: NextFunction) => {
   next(new AppError(`Route ${req.originalUrl} not found`, 404));
 };
 
-export const errorHandler: ErrorRequestHandler = (error, _req, res, _next) => {
+export const errorHandler: ErrorRequestHandler = (error: any, _req: Request, res: Response, _next: NextFunction) => {
   console.error("API Error:", error);
   let statusCode = 500;
   let message = "Internal server error";
