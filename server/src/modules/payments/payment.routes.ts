@@ -1,7 +1,14 @@
 import { Router } from "express";
 import { validate } from "../../middleware/validate";
 import { authenticate, authorize } from "../auth/auth.middleware";
-import { findAll, findById, findByOrder, updateStatus } from "./payment.controller";
+import {
+  createRazorpayOrder,
+  findAll,
+  findById,
+  findByOrder,
+  updateStatus,
+  verifyRazorpayPayment,
+} from "./payment.controller";
 import {
   orderPaymentParamSchema,
   paymentIdParamSchema,
@@ -12,6 +19,9 @@ import {
 const router = Router();
 
 router.use(authenticate);
+
+router.post("/razorpay/create-order", createRazorpayOrder);
+router.post("/razorpay/verify", verifyRazorpayPayment);
 
 router.get("/", authorize("admin"), validate(paymentQuerySchema, "query"), findAll);
 router.get(
