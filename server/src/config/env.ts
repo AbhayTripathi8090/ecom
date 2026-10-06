@@ -31,6 +31,8 @@ const envSchema = z.object({
   RAZORPAY_KEY_ID: z.string().default("rzp_test_MockRazorpayKeyId12345"),
 
   RAZORPAY_KEY_SECRET: z.string().default("MockRazorpayKeySecret1234567890"),
+
+  REDIS_URL: z.string().default("redis://default:your_redis_password@localhost:6379"),
 });
 
 export const env = envSchema.parse(process.env);

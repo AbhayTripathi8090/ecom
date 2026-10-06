@@ -44,6 +44,7 @@ lerna-debug.log*
 pids
 *.pid
 *.seed
+temp_auto_push.bat
 *.pid.lock
 .pstore
 
@@ -55,8 +56,6 @@ coverage/
 # ==========================================
 # IDEs & Code Editors
 # ==========================================
-.vscode/*
-!.vscode/extensions.json
 .idea/
 *.suo
 *.ntvs*
@@ -92,4 +91,5 @@ dist/
 .env
 uploads/
 coverage/
-*.log
+*.log.gitignore
+branch_structure.json
