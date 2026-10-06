@@ -1,5 +1,6 @@
 import { Types } from "mongoose";
 import { env } from "../../config/env";
+import redisClient from "../../config/redis";
 import { AppError } from "../../utils/AppError";
 import { deleteImage, uploadImage } from "../../utils/cloudinary";
 import { getPagination, type PaginationMeta } from "../../utils/pagination";
@@ -17,6 +18,9 @@ const productFolder = `${env.CLOUDINARY_FOLDER}/products`;
 const productPopulate = {
   path: "category",
   select: "name slug image parentCategory",
+};
+const buildProductsCacheKey = (query: ProductQueryInput): string => {
+  return `products:${JSON.stringify(query)}`;
 };
 
 const buildSlug = (name: string, slug?: string): string => slugify(slug ?? name);
@@ -95,6 +99,17 @@ export const createProduct = async (
 export const getProducts = async (
   query: ProductQueryInput,
 ): Promise<{ products: ProductDocument[]; meta: PaginationMeta }> => {
+  const cacheKey = buildProductsCacheKey(query);
+
+  const cachedProducts = await redisClient.get(cacheKey);
+
+  if (cachedProducts) {
+    return JSON.parse(cachedProducts) as {
+      products: ProductDocument[];
+      meta: PaginationMeta;
+    };
+  }
+
   const filter: Record<string, unknown> = {};
 
   if (query.search) {
@@ -134,19 +149,29 @@ export const getProducts = async (
   }
 
   const skip = (query.page - 1) * query.limit;
+
   const [products, total] = await Promise.all([
     Product.find(filter)
       .populate(productPopulate)
       .sort(query.sort)
       .skip(skip)
       .limit(query.limit),
+
     Product.countDocuments(filter),
   ]);
 
-  return {
+  const result = {
     products,
     meta: getPagination(query.page, query.limit, total),
   };
+
+  await redisClient.setEx(
+    cacheKey,
+    120,
+    JSON.stringify(result),
+  );
+
+  return result;
 };
 
 export const getProductById = async (
