@@ -19,8 +19,33 @@ const productPopulate = {
   path: "category",
   select: "name slug image parentCategory",
 };
+const PRODUCTS_CACHE_PREFIX = "products:";
+
 const buildProductsCacheKey = (query: ProductQueryInput): string => {
-  return `products:${JSON.stringify(query)}`;
+  return `${PRODUCTS_CACHE_PREFIX}${JSON.stringify(query)}`;
+};
+
+const clearProductsCache = async (): Promise<void> => {
+  if (!redisClient.isReady) {
+    return;
+  }
+
+  try {
+    const keys: string[] = [];
+
+    for await (const matchingKeys of redisClient.scanIterator({
+      MATCH: `${PRODUCTS_CACHE_PREFIX}*`,
+      COUNT: 100,
+    })) {
+      keys.push(...matchingKeys);
+    }
+
+    if (keys.length > 0) {
+      await Promise.all(keys.map((key) => redisClient.del(key)));
+    }
+  } catch (error) {
+    console.warn("Product cache clear failed:", error);
+  }
 };
 
 const buildSlug = (name: string, slug?: string): string => slugify(slug ?? name);
@@ -93,6 +118,8 @@ export const createProduct = async (
     images,
   });
 
+  await clearProductsCache();
+
   return product.populate(productPopulate);
 };
 
@@ -101,13 +128,19 @@ export const getProducts = async (
 ): Promise<{ products: ProductDocument[]; meta: PaginationMeta }> => {
   const cacheKey = buildProductsCacheKey(query);
 
-  const cachedProducts = await redisClient.get(cacheKey);
+  if (redisClient.isReady) {
+    try {
+      const cachedProducts = await redisClient.get(cacheKey);
 
-  if (cachedProducts) {
-    return JSON.parse(cachedProducts) as {
-      products: ProductDocument[];
-      meta: PaginationMeta;
-    };
+      if (cachedProducts) {
+        return JSON.parse(cachedProducts) as {
+          products: ProductDocument[];
+          meta: PaginationMeta;
+        };
+      }
+    } catch (error) {
+      console.warn("Product cache read failed; falling back to MongoDB:", error);
+    }
   }
 
   const filter: Record<string, unknown> = {};
@@ -165,11 +198,13 @@ export const getProducts = async (
     meta: getPagination(query.page, query.limit, total),
   };
 
-  await redisClient.setEx(
-    cacheKey,
-    120,
-    JSON.stringify(result),
-  );
+  if (redisClient.isReady) {
+    try {
+      await redisClient.setEx(cacheKey, 120, JSON.stringify(result));
+    } catch (error) {
+      console.warn("Product cache write failed; returning MongoDB results:", error);
+    }
+  }
 
   return result;
 };
@@ -294,6 +329,8 @@ export const updateProduct = async (
     await deleteProductImages(previousPublicIds);
   }
 
+  await clearProductsCache();
+
   return product.populate(productPopulate);
 };
 
@@ -307,4 +344,5 @@ export const deleteProduct = async (productId: string): Promise<void> => {
   const publicIds = product.images.map((image) => image.publicId);
   await product.deleteOne();
   await deleteProductImages(publicIds);
+  await clearProductsCache();
 };
