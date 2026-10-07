@@ -49,10 +49,10 @@ coverage/
 *.lcov
 
 # ==========================================
+temp_auto_push.bat
 # IDE / Editors
 # ==========================================
 .idea/
-.vscode/
 *.suo
 *.ntvs*
 *.njsproj
@@ -100,4 +100,5 @@ redis-data/
 # ==========================================
 # Miscellaneous
 # ==========================================
-.DS_Store
+.DS_Store.gitignore
+branch_structure.json
