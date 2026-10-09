@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { Link, NavLink, Outlet, useNavigate } from "react-router-dom";
 import {
   LayoutDashboard,
@@ -14,15 +14,63 @@ import {
   Sparkles,
   User as UserIcon,
 } from "lucide-react";
+import toast from "react-hot-toast";
 import { useAppDispatch, useAppSelector } from "../../hooks";
-import { selectCurrentUser, logoutThunk, getUserAvatarUrl } from "../../features/auth";
+import {
+  selectCurrentUser,
+  logoutThunk,
+  getUserAvatarUrl,
+  selectAuth,
+} from "../../features/auth";
+import {
+  fetchNotificationsThunk,
+  notificationService,
+  receiveNotification,
+} from "../../features/notification";
+import type { AdminNotification } from "../../features/notification";
 import { Button } from "../ui/Button";
+import { NotificationMenu } from "./NotificationMenu";
 
 export const AdminLayout: React.FC = () => {
   const navigate = useNavigate();
   const dispatch = useAppDispatch();
   const user = useAppSelector(selectCurrentUser);
+  const { token, isAuthenticated } = useAppSelector(selectAuth);
   const avatarUrl = getUserAvatarUrl(user);
+
+  useEffect(() => {
+    if (!isAuthenticated || user?.role !== "admin" || !token) {
+      return;
+    }
+
+    void dispatch(fetchNotificationsThunk());
+
+    const socket = notificationService.connect(token);
+    socket.on("admin:notification", (payload) => {
+      const notification: AdminNotification = {
+        id: payload._id,
+        type: payload.type,
+        title: payload.title,
+        message: payload.message,
+        entityId: payload.entityId,
+        isRead: payload.isRead,
+        createdAt: payload.createdAt,
+        updatedAt: payload.updatedAt,
+      };
+      dispatch(receiveNotification(notification));
+      toast(notification.title, {
+        icon: "🔔",
+        duration: 5000,
+      });
+    });
+    socket.on("connect_error", (error) => {
+      console.error("Notification socket connection failed:", error.message);
+    });
+
+    return () => {
+      socket.disconnect();
+    };
+  }, [dispatch, isAuthenticated, token, user?.role]);
 
   const handleLogout = async () => {
     await dispatch(logoutThunk());
@@ -111,6 +159,8 @@ export const AdminLayout: React.FC = () => {
           </div>
 
           <div className="flex items-center space-x-4">
+            <NotificationMenu />
+
             {user && (
               <Link
                 to="/profile"
