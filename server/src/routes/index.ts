@@ -4,6 +4,7 @@ import authRoutes from "../modules/auth/auth.routes";
 import cartRoutes from "../modules/cart/cart.routes";
 import categoryRoutes from "../modules/categories/category.routes";
 import dashboardRoutes from "../modules/dashboard/dashboard.routes";
+import notificationRoutes from "../modules/notification/notification.routes";
 import orderRoutes from "../modules/orders/order.routes";
 import paymentRoutes from "../modules/payments/payment.routes";
 import productRoutes from "../modules/products/product.routes";
@@ -31,5 +32,6 @@ router.use("/payments", paymentRoutes);
 router.use("/shipping", shippingRoutes);
 router.use("/admin", adminRoutes);
 router.use("/dashboard", dashboardRoutes);
+router.use("/notifications", notificationRoutes);
 
 export default router;

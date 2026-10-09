@@ -7,6 +7,7 @@ import orderReducer from "../features/order/order.slice";
 import paymentReducer from "../features/payment/payment.slice";
 import shippingReducer from "../features/shipping/shipping.slice";
 import dashboardReducer from "../features/dashboard/dashboard.slice";
+import notificationReducer from "../features/notification/notification.slice";
 
 export const rootReducer = combineReducers({
   auth: authReducer,
@@ -17,6 +18,7 @@ export const rootReducer = combineReducers({
   payment: paymentReducer,
   shipping: shippingReducer,
   dashboard: dashboardReducer,
+  notification: notificationReducer,
 });
 
 export type RootState = ReturnType<typeof rootReducer>;
