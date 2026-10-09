@@ -4,6 +4,8 @@ import { getPagination, type PaginationMeta } from "../../utils/pagination";
 import { Cart } from "../cart/cart.model";
 import { Payment } from "../payments/payment.model";
 import { Product } from "../products/product.model";
+import { createAdminNotification } from "../notification/notification.service";
+import { NotificationType } from "../notification/notification.model";
 import { Order } from "./order.model";
 import type {
   CreateOrderInput,
@@ -113,6 +115,13 @@ export const createOrderFromCart = async (
       createdOrderId = order._id.toString();
     });
 
+    await createAdminNotification({
+      type: NotificationType.ORDER_PLACED,
+      title: "New order placed",
+      message: "A new order has been placed.",
+      entityId: createdOrderId,
+    });
+
     return Order.findById(createdOrderId).populate(orderPopulate);
   } finally {
     await session.endSession();
@@ -181,6 +190,7 @@ export const updateOrderStatus = async (
 
   try {
     let updatedOrderId = "";
+    let cancellationOccurred = false;
 
     await session.withTransaction(async () => {
       const order = await Order.findById(orderId).session(session);
@@ -201,6 +211,7 @@ export const updateOrderStatus = async (
       }
 
       if (input.orderStatus === "cancelled" && !wasCancelled) {
+        cancellationOccurred = true;
         for (const item of order.items as any[]) {
           await Product.updateOne(
             { _id: item.product },
@@ -215,6 +226,15 @@ export const updateOrderStatus = async (
       await order.save({ session });
       updatedOrderId = order._id.toString();
     });
+
+    if (cancellationOccurred) {
+      await createAdminNotification({
+        type: NotificationType.ORDER_CANCELLED,
+        title: "Order cancelled",
+        message: "An order has been cancelled.",
+        entityId: updatedOrderId,
+      });
+    }
 
     return Order.findById(updatedOrderId).populate(orderPopulate);
   } finally {
@@ -252,6 +272,13 @@ export const cancelMyOrder = async (orderId: string, userId: string) => {
   } finally {
     await session.endSession();
   }
+
+  await createAdminNotification({
+    type: NotificationType.ORDER_CANCELLED,
+    title: "Order cancelled",
+    message: "A customer has cancelled an order.",
+    entityId: orderId,
+  });
 
   return Order.findById(orderId).populate(orderPopulate);
 };
