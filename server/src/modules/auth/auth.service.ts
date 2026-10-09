@@ -2,6 +2,8 @@ import { AppError } from "../../utils/AppError";
 import { env } from "../../config/env";
 import { deleteImage, uploadImage } from "../../utils/cloudinary";
 import { signAuthToken } from "../../utils/jwt";
+import { createAdminNotification } from "../notification/notification.service";
+import { NotificationType } from "../notification/notification.model";
 import type {
   AuthTokens,
   AuthUser,
@@ -60,6 +62,12 @@ export const registerUser = async (
     ...input,
     role: input.role ?? "user",
     profileImage,
+  });
+  await createAdminNotification({
+    type: NotificationType.USER_REGISTERED,
+    title: "New user registered",
+    message: "A new user has registered.",
+    entityId: user._id,
   });
   const accessToken = createToken(user);
 
