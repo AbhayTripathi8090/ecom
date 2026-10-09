@@ -3,7 +3,6 @@
 A full-stack custom merchandise e-commerce platform built with Node.js, Express, TypeScript, MongoDB, React, Redux Toolkit, and Tailwind CSS.
 
 - **GitHub Repository**: [https://github.com/AbhayTripathi8090/ecom](https://github.com/AbhayTripathi8090/ecom)
-- **Admin portal**: [(https://ecom-3j9p.vercel.app/dashboard](https://ecom-3j9p.vercel.app/)
 
 ---
 
